@@ -186,20 +186,20 @@
  512  00d4               _lcd_init_hw:
  516                     ; 110  GPIO_Init(LCD_RS_PORT,LCD_RS_PIN,GPIO_MODE_OUT_PP_LOW_SLOW);
  518  00d4 4bc0          	push	#192
- 519  00d6 4b80          	push	#128
- 520  00d8 ae5019        	ldw	x,#20505
+ 519  00d6 4b02          	push	#2
+ 520  00d8 ae5014        	ldw	x,#20500
  521  00db cd0000        	call	_GPIO_Init
  523  00de 85            	popw	x
  524                     ; 111  GPIO_Init(LCD_RW_PORT,LCD_RW_PIN,GPIO_MODE_OUT_PP_LOW_SLOW);
  526  00df 4bc0          	push	#192
- 527  00e1 4b40          	push	#64
- 528  00e3 ae5019        	ldw	x,#20505
+ 527  00e1 4b04          	push	#4
+ 528  00e3 ae5014        	ldw	x,#20500
  529  00e6 cd0000        	call	_GPIO_Init
  531  00e9 85            	popw	x
  532                     ; 112  GPIO_Init(LCD_E_PORT,LCD_E_PIN,GPIO_MODE_OUT_PP_HIGH_SLOW);
  534  00ea 4bd0          	push	#208
- 535  00ec 4b20          	push	#32
- 536  00ee ae5019        	ldw	x,#20505
+ 535  00ec 4b10          	push	#16
+ 536  00ee ae5014        	ldw	x,#20500
  537  00f1 cd0000        	call	_GPIO_Init
  539  00f4 85            	popw	x
  540                     ; 115  lcd_bus_outputs();
@@ -269,20 +269,20 @@
  703  0152               _lcd_deinit_hw:
  707                     ; 148 	GPIO_Init(LCD_RS_PORT,LCD_RS_PIN,GPIO_MODE_IN_FL_NO_IT);
  709  0152 4b00          	push	#0
- 710  0154 4b80          	push	#128
- 711  0156 ae5019        	ldw	x,#20505
+ 710  0154 4b02          	push	#2
+ 711  0156 ae5014        	ldw	x,#20500
  712  0159 cd0000        	call	_GPIO_Init
  714  015c 85            	popw	x
  715                     ; 149 	GPIO_Init(LCD_RW_PORT,LCD_RW_PIN,GPIO_MODE_IN_FL_NO_IT);
  717  015d 4b00          	push	#0
- 718  015f 4b40          	push	#64
- 719  0161 ae5019        	ldw	x,#20505
+ 718  015f 4b04          	push	#4
+ 719  0161 ae5014        	ldw	x,#20500
  720  0164 cd0000        	call	_GPIO_Init
  722  0167 85            	popw	x
  723                     ; 150 	GPIO_Init(LCD_E_PORT,LCD_E_PIN,GPIO_MODE_IN_FL_NO_IT);
  725  0168 4b00          	push	#0
- 726  016a 4b20          	push	#32
- 727  016c ae5019        	ldw	x,#20505
+ 726  016a 4b10          	push	#16
+ 727  016c ae5014        	ldw	x,#20500
  728  016f cd0000        	call	_GPIO_Init
  730  0172 85            	popw	x
  731                     ; 151 	GPIO_Init(LCD_D4_PORT,LCD_D4_PIN,GPIO_MODE_IN_FL_NO_IT);
@@ -437,8 +437,8 @@
 1052                     	switch	.text
 1053  025d               _lcd_e_tick:
 1057                     ; 177 	LCD_E_H;
-1059  025d 4b20          	push	#32
-1060  025f ae5019        	ldw	x,#20505
+1059  025d 4b10          	push	#16
+1060  025f ae5014        	ldw	x,#20500
 1061  0262 cd0000        	call	_GPIO_WriteHigh
 1063  0265 84            	pop	a
 1064                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -451,8 +451,8 @@
 1075                      
 1077  026e               L313:
 1078                     ; 179 	LCD_E_L;
-1080  026e 4b20          	push	#32
-1081  0270 ae5019        	ldw	x,#20505
+1080  026e 4b10          	push	#16
+1081  0270 ae5014        	ldw	x,#20500
 1082  0273 cd0000        	call	_GPIO_WriteLow
 1084  0276 84            	pop	a
 1085                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -472,8 +472,8 @@
 1147  0280 88            	push	a
 1148       00000000      OFST:	set	0
 1151                     ; 185 	LCD_RS_L;
-1153  0281 4b80          	push	#128
-1154  0283 ae5019        	ldw	x,#20505
+1153  0281 4b02          	push	#2
+1154  0283 ae5014        	ldw	x,#20500
 1155  0286 cd0000        	call	_GPIO_WriteLow
 1157  0289 84            	pop	a
 1158                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -509,8 +509,8 @@
 1246  02aa 88            	push	a
 1247       00000000      OFST:	set	0
 1250                     ; 196 	LCD_RS_H;
-1252  02ab 4b80          	push	#128
-1253  02ad ae5019        	ldw	x,#20505
+1252  02ab 4b02          	push	#2
+1253  02ad ae5014        	ldw	x,#20500
 1254  02b0 cd0000        	call	_GPIO_WriteHigh
 1256  02b3 84            	pop	a
 1257                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -547,15 +547,15 @@
 1351       00000001      OFST:	set	1
 1354                     ; 207 	uint8_t tmp=0;
 1356                     ; 208 	LCD_RS_L;
-1358  02d5 4b80          	push	#128
-1359  02d7 ae5019        	ldw	x,#20505
+1358  02d5 4b02          	push	#2
+1359  02d7 ae5014        	ldw	x,#20500
 1360  02da cd0000        	call	_GPIO_WriteLow
 1362  02dd 84            	pop	a
 1363                     ; 209 	lcd_bus_inputs();
 1365  02de cd0125        	call	_lcd_bus_inputs
 1367                     ; 210 	LCD_RW_H;
-1369  02e1 4b40          	push	#64
-1370  02e3 ae5019        	ldw	x,#20505
+1369  02e1 4b04          	push	#4
+1370  02e3 ae5014        	ldw	x,#20500
 1371  02e6 cd0000        	call	_GPIO_WriteHigh
 1373  02e9 84            	pop	a
 1374                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -568,8 +568,8 @@
 1385                      
 1387  02f2               L773:
 1388                     ; 212 	LCD_E_H;
-1390  02f2 4b20          	push	#32
-1391  02f4 ae5019        	ldw	x,#20505
+1390  02f2 4b10          	push	#16
+1391  02f4 ae5014        	ldw	x,#20500
 1392  02f7 cd0000        	call	_GPIO_WriteHigh
 1394  02fa 84            	pop	a
 1395                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -589,8 +589,8 @@
 1416  030a 9f            	ld	a,xl
 1417  030b 6b01          	ld	(OFST+0,sp),a
 1419                     ; 215 	LCD_E_L;
-1421  030d 4b20          	push	#32
-1422  030f ae5019        	ldw	x,#20505
+1421  030d 4b10          	push	#16
+1422  030f ae5014        	ldw	x,#20500
 1423  0312 cd0000        	call	_GPIO_WriteLow
 1425  0315 84            	pop	a
 1426                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -603,8 +603,8 @@
 1437                      
 1439  031e               L704:
 1440                     ; 217 	LCD_E_H;
-1442  031e 4b20          	push	#32
-1443  0320 ae5019        	ldw	x,#20505
+1442  031e 4b10          	push	#16
+1443  0320 ae5014        	ldw	x,#20500
 1444  0323 cd0000        	call	_GPIO_WriteHigh
 1446  0326 84            	pop	a
 1447                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -621,8 +621,8 @@
 1465  0332 1a01          	or	a,(OFST+0,sp)
 1466  0334 6b01          	ld	(OFST+0,sp),a
 1468                     ; 220 	LCD_E_L;
-1470  0336 4b20          	push	#32
-1471  0338 ae5019        	ldw	x,#20505
+1470  0336 4b10          	push	#16
+1471  0338 ae5014        	ldw	x,#20500
 1472  033b cd0000        	call	_GPIO_WriteLow
 1474  033e 84            	pop	a
 1475                     ; 21 	_asm("nop\n $N:\n decw X\n jrne $L\n nop\n ", __ticks);
@@ -635,8 +635,8 @@
 1486                      
 1488  0347               L714:
 1489                     ; 222 	LCD_RW_L;
-1491  0347 4b40          	push	#64
-1492  0349 ae5019        	ldw	x,#20505
+1491  0347 4b04          	push	#4
+1492  0349 ae5014        	ldw	x,#20500
 1493  034c cd0000        	call	_GPIO_WriteLow
 1495  034f 84            	pop	a
 1496                     ; 223 	lcd_bus_outputs();
@@ -649,13 +649,13 @@
 1532                     	switch	.text
 1533  0358               _lcd_bus_sleep:
 1537                     ; 230 LCD_RS_H;
-1539  0358 4b80          	push	#128
-1540  035a ae5019        	ldw	x,#20505
+1539  0358 4b02          	push	#2
+1540  035a ae5014        	ldw	x,#20500
 1541  035d cd0000        	call	_GPIO_WriteHigh
 1543  0360 84            	pop	a
 1544                     ; 231 LCD_RW_H;
-1546  0361 4b40          	push	#64
-1547  0363 ae5019        	ldw	x,#20505
+1546  0361 4b04          	push	#4
+1547  0363 ae5014        	ldw	x,#20500
 1548  0366 cd0000        	call	_GPIO_WriteHigh
 1550  0369 84            	pop	a
 1551                     ; 232 lcd_bus_inputs();
@@ -666,8 +666,8 @@
 1585                     	switch	.text
 1586  036e               _lcd_bus_wakeup:
 1590                     ; 237 LCD_RW_L;
-1592  036e 4b40          	push	#64
-1593  0370 ae5019        	ldw	x,#20505
+1592  036e 4b04          	push	#4
+1593  0370 ae5014        	ldw	x,#20500
 1594  0373 cd0000        	call	_GPIO_WriteLow
 1596  0376 84            	pop	a
 1597                     ; 238 LCD_D4_H;

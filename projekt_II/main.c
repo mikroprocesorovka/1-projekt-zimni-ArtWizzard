@@ -31,6 +31,7 @@ void init(void){
 	
 	init_milis();						// Dekralace vnitøního èasu v STM 
 	keypad_init();					// Deklarace nastavení pinù na klávesnici
+	lcd_init();
 	
 	GPIO_Init(GPIOC,GPIO_PIN_5,GPIO_MODE_OUT_PP_LOW_SLOW);
 }
@@ -39,16 +40,24 @@ void process_keypad(void){
 	static uint8_t minule_stisknuto=0xFF;	// poslední stav klávesnice (zde "volno")
 	static uint16_t last_time=0; 					// poslední èas kontroly stisku
 	uint8_t stisknuto;										// aktuálnì stisknutáklávesnice
+	//char text[32];												// text for drawing in LCD display
+	//uint16_t hodnota = 455;
+	char x = 'A';
 
 	if(milis()-last_time > 20){ // každých 20 ms ...
 		last_time = milis();
 		stisknuto = keypad_scan(); // ... skenujeme klávesnici
+		
 		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvolnìno a pak stisknuto
 			minule_stisknuto = stisknuto;
 			
 			switch(stisknuto) {			// Switcher pro stisk					//  program bude ukládat jednotlivé èíslice
 				case 0 :
+					lcd_gotoxy(0,1);
 					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
+					//sprintf(text,'rychlost=%u',hodnota);
+					//lcd_puts(text);
+					lcd_putchar(x);
 					break;
 				case 1 :
 					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
