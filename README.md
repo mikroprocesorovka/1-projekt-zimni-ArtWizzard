@@ -4,6 +4,9 @@ Start STM8
 
 Startovací strom zdrojových kódů pro výuku mikroprocesorové techniky s kitem
 [NUCLEO-8S208RB](https://www.st.com/en/evaluation-tools/nucleo-8s208rb.html).
-
+Vývojové prostředí je 
+[ST Visual Develop](https://www.st.com/content/st_com/en.html).
+Překladač je 
+[COSMIC](https://www.cosmicsoftware.com/index.php).
 
 
