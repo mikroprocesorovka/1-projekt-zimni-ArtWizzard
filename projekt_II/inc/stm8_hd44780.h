@@ -91,9 +91,9 @@
 #define LCD_D6_PORT     GPIOG
 #define LCD_D7_PORT     GPIOG
 
-#define LCD_RS_PIN  GPIO_PIN_1
-#define LCD_RW_PIN  GPIO_PIN_2
-#define LCD_E_PIN   GPIO_PIN_4
+#define LCD_RS_PIN  GPIO_PIN_1 //diff
+#define LCD_RW_PIN  GPIO_PIN_2 //diff
+#define LCD_E_PIN   GPIO_PIN_4 //diff
 #define LCD_D4_PIN  GPIO_PIN_0
 #define LCD_D5_PIN  GPIO_PIN_1
 #define LCD_D6_PIN  GPIO_PIN_2

@@ -40,9 +40,7 @@ void process_keypad(void){
 	static uint8_t minule_stisknuto=0xFF;	// poslední stav klávesnice (zde "volno")
 	static uint16_t last_time=0; 					// poslední èas kontroly stisku
 	uint8_t stisknuto;										// aktuálnì stisknutáklávesnice
-	//char text[32];												// text for drawing in LCD display
-	//uint16_t hodnota = 455;
-	char x = 'A';
+	char x = '*';
 
 	if(milis()-last_time > 20){ // každých 20 ms ...
 		last_time = milis();
@@ -55,12 +53,12 @@ void process_keypad(void){
 				case 0 :
 					lcd_gotoxy(0,1);
 					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
-					//sprintf(text,'rychlost=%u',hodnota);
-					//lcd_puts(text);
 					lcd_putchar(x);
 					break;
 				case 1 :
+					lcd_gotoxy(0,0);
 					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
+					lcd_putchar(x);
 					break;
 				case 2 :
 					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
