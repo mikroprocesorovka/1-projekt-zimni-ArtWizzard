@@ -27,7 +27,7 @@ Debug=$(TargetFName)
 [Root]
 ElemType=Project
 PathName=projekt_ii
-Child=Root.Source Files
+Child=Root.Include Files
 Config.0=Root.Config.0
 Config.1=Root.Config.1
 
@@ -213,11 +213,233 @@ String.6.0=2022,1,22,11,0,24
 String.2.0=Performing Custom Build on $(InputFile)
 String.6.0=2022,1,22,11,0,24
 
+[Root.Include Files]
+ElemType=Folder
+PathName=Include Files
+Child=Root.Include Files.inc\delay.h
+Next=Root.Source Files
+Config.0=Root.Include Files.Config.0
+Config.1=Root.Include Files.Config.1
+
+[Root.Include Files.Config.0]
+Settings.0.0=Root.Include Files.Config.0.Settings.0
+Settings.0.1=Root.Include Files.Config.0.Settings.1
+Settings.0.2=Root.Include Files.Config.0.Settings.2
+Settings.0.3=Root.Include Files.Config.0.Settings.3
+
+[Root.Include Files.Config.1]
+Settings.1.0=Root.Include Files.Config.1.Settings.0
+Settings.1.1=Root.Include Files.Config.1.Settings.1
+Settings.1.2=Root.Include Files.Config.1.Settings.2
+Settings.1.3=Root.Include Files.Config.1.Settings.3
+
+[Root.Include Files.Config.0.Settings.0]
+String.6.0=2022,1,22,16,31,35
+String.8.0=Debug
+Int.0=0
+Int.1=0
+
+[Root.Include Files.Config.0.Settings.1]
+String.2.0=Compiling $(InputFile)...
+String.3.0=cxstm8 +mods0 -customDebCompat -customOpt-no -customC-pp -customLst -l -dF_CPU=16000000 -iinc $(ToolsetIncOpts) -cl$(IntermPath) -co$(IntermPath) $(InputFile)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).ls
+String.6.0=2022,1,22,11,4,39
+
+[Root.Include Files.Config.0.Settings.2]
+String.2.0=Assembling $(InputFile)...
+String.3.0=castm8 -xx -l $(ToolsetIncOpts) -o$(IntermPath)$(InputName).$(ObjectExt) $(InputFile)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).ls
+String.6.0=2022,1,22,11,0,24
+
+[Root.Include Files.Config.0.Settings.3]
+String.2.0=Performing Custom Build on $(InputFile)
+String.3.0=
+String.4.0=
+String.5.0=
+String.6.0=2022,1,22,11,0,24
+
+[Root.Include Files.Config.1.Settings.0]
+String.6.0=2022,1,22,16,31,35
+String.8.0=Release
+Int.0=0
+Int.1=0
+
+[Root.Include Files.Config.1.Settings.1]
+String.2.0=Compiling $(InputFile)...
+String.3.0=cxstm8 -iinc  +mods0 -customC-pp $(ToolsetIncOpts) -cl$(IntermPath) -co$(IntermPath) $(InputFile) 
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).ls
+String.6.0=2022,1,22,11,0,24
+
+[Root.Include Files.Config.1.Settings.2]
+String.2.0=Assembling $(InputFile)...
+String.3.0=castm8 $(ToolsetIncOpts) -o$(IntermPath)$(InputName).$(ObjectExt) $(InputFile)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).ls
+String.6.0=2022,1,22,11,0,24
+
+[Root.Include Files.Config.1.Settings.3]
+String.2.0=Performing Custom Build on $(InputFile)
+String.3.0=
+String.4.0=
+String.5.0=
+String.6.0=2022,1,22,11,0,24
+
+[Root.Include Files.inc\delay.h]
+ElemType=File
+PathName=inc\delay.h
+Next=Root.Include Files.inc\keypad.h
+
+[Root.Include Files.inc\keypad.h]
+ElemType=File
+PathName=inc\keypad.h
+Next=Root.Include Files.inc\milis.h
+
+[Root.Include Files.inc\milis.h]
+ElemType=File
+PathName=inc\milis.h
+Next=Root.Include Files.inc\spse_stm8.h
+
+[Root.Include Files.inc\spse_stm8.h]
+ElemType=File
+PathName=inc\spse_stm8.h
+Next=Root.Include Files.inc\stm8_hd44780.h
+
+[Root.Include Files.inc\stm8_hd44780.h]
+ElemType=File
+PathName=inc\stm8_hd44780.h
+Next=Root.Include Files.inc\stm8_spse_i2c.h
+
+[Root.Include Files.inc\stm8_spse_i2c.h]
+ElemType=File
+PathName=inc\stm8_spse_i2c.h
+Next=Root.Include Files.inc\stm8s.h
+
+[Root.Include Files.inc\stm8s.h]
+ElemType=File
+PathName=inc\stm8s.h
+Next=Root.Include Files.inc\stm8s_adc2.h
+
+[Root.Include Files.inc\stm8s_adc2.h]
+ElemType=File
+PathName=inc\stm8s_adc2.h
+Next=Root.Include Files.inc\stm8s_awu.h
+
+[Root.Include Files.inc\stm8s_awu.h]
+ElemType=File
+PathName=inc\stm8s_awu.h
+Next=Root.Include Files.inc\stm8s_beep.h
+
+[Root.Include Files.inc\stm8s_beep.h]
+ElemType=File
+PathName=inc\stm8s_beep.h
+Next=Root.Include Files.inc\stm8s_can.h
+
+[Root.Include Files.inc\stm8s_can.h]
+ElemType=File
+PathName=inc\stm8s_can.h
+Next=Root.Include Files.inc\stm8s_clk.h
+
+[Root.Include Files.inc\stm8s_clk.h]
+ElemType=File
+PathName=inc\stm8s_clk.h
+Next=Root.Include Files.inc\stm8s_conf.h
+
+[Root.Include Files.inc\stm8s_conf.h]
+ElemType=File
+PathName=inc\stm8s_conf.h
+Next=Root.Include Files.inc\stm8s_exti.h
+
+[Root.Include Files.inc\stm8s_exti.h]
+ElemType=File
+PathName=inc\stm8s_exti.h
+Next=Root.Include Files.inc\stm8s_flash.h
+
+[Root.Include Files.inc\stm8s_flash.h]
+ElemType=File
+PathName=inc\stm8s_flash.h
+Next=Root.Include Files.inc\stm8s_gpio.h
+
+[Root.Include Files.inc\stm8s_gpio.h]
+ElemType=File
+PathName=inc\stm8s_gpio.h
+Next=Root.Include Files.inc\stm8s_i2c.h
+
+[Root.Include Files.inc\stm8s_i2c.h]
+ElemType=File
+PathName=inc\stm8s_i2c.h
+Next=Root.Include Files.inc\stm8s_it.h
+
+[Root.Include Files.inc\stm8s_it.h]
+ElemType=File
+PathName=inc\stm8s_it.h
+Next=Root.Include Files.inc\stm8s_itc.h
+
+[Root.Include Files.inc\stm8s_itc.h]
+ElemType=File
+PathName=inc\stm8s_itc.h
+Next=Root.Include Files.inc\stm8s_iwdg.h
+
+[Root.Include Files.inc\stm8s_iwdg.h]
+ElemType=File
+PathName=inc\stm8s_iwdg.h
+Next=Root.Include Files.inc\stm8s_rst.h
+
+[Root.Include Files.inc\stm8s_rst.h]
+ElemType=File
+PathName=inc\stm8s_rst.h
+Next=Root.Include Files.inc\stm8s_spi.h
+
+[Root.Include Files.inc\stm8s_spi.h]
+ElemType=File
+PathName=inc\stm8s_spi.h
+Next=Root.Include Files.inc\stm8s_tim1.h
+
+[Root.Include Files.inc\stm8s_tim1.h]
+ElemType=File
+PathName=inc\stm8s_tim1.h
+Next=Root.Include Files.inc\stm8s_tim2.h
+
+[Root.Include Files.inc\stm8s_tim2.h]
+ElemType=File
+PathName=inc\stm8s_tim2.h
+Next=Root.Include Files.inc\stm8s_tim3.h
+
+[Root.Include Files.inc\stm8s_tim3.h]
+ElemType=File
+PathName=inc\stm8s_tim3.h
+Next=Root.Include Files.inc\stm8s_tim4.h
+
+[Root.Include Files.inc\stm8s_tim4.h]
+ElemType=File
+PathName=inc\stm8s_tim4.h
+Next=Root.Include Files.inc\stm8s_uart1.h
+
+[Root.Include Files.inc\stm8s_uart1.h]
+ElemType=File
+PathName=inc\stm8s_uart1.h
+Next=Root.Include Files.inc\stm8s_uart3.h
+
+[Root.Include Files.inc\stm8s_uart3.h]
+ElemType=File
+PathName=inc\stm8s_uart3.h
+Next=Root.Include Files.inc\stm8s_wwdg.h
+
+[Root.Include Files.inc\stm8s_wwdg.h]
+ElemType=File
+PathName=inc\stm8s_wwdg.h
+Next=Root.Include Files.inc\swspi.h
+
+[Root.Include Files.inc\swspi.h]
+ElemType=File
+PathName=inc\swspi.h
+
 [Root.Source Files]
 ElemType=Folder
 PathName=Source Files
 Child=Root.Source Files.main.c
-Next=Root.Include Files
 Config.0=Root.Source Files.Config.0
 Config.1=Root.Source Files.Config.1
 
@@ -430,225 +652,3 @@ Next=Root.Source Files.stm8_interrupt_vector.c
 [Root.Source Files.stm8_interrupt_vector.c]
 ElemType=File
 PathName=stm8_interrupt_vector.c
-
-[Root.Include Files]
-ElemType=Folder
-PathName=Include Files
-Child=Root.Include Files.inc\delay.h
-Config.0=Root.Include Files.Config.0
-Config.1=Root.Include Files.Config.1
-
-[Root.Include Files.Config.0]
-Settings.0.0=Root.Include Files.Config.0.Settings.0
-Settings.0.1=Root.Include Files.Config.0.Settings.1
-Settings.0.2=Root.Include Files.Config.0.Settings.2
-Settings.0.3=Root.Include Files.Config.0.Settings.3
-
-[Root.Include Files.Config.1]
-Settings.1.0=Root.Include Files.Config.1.Settings.0
-Settings.1.1=Root.Include Files.Config.1.Settings.1
-Settings.1.2=Root.Include Files.Config.1.Settings.2
-Settings.1.3=Root.Include Files.Config.1.Settings.3
-
-[Root.Include Files.Config.0.Settings.0]
-String.6.0=2022,1,22,11,0,24
-String.8.0=Debug
-Int.0=0
-Int.1=0
-
-[Root.Include Files.Config.0.Settings.1]
-String.2.0=Compiling $(InputFile)...
-String.3.0=cxstm8 +mods0 -customDebCompat -customOpt-no -customC-pp -customLst -l -dF_CPU=16000000 -iinc $(ToolsetIncOpts) -cl$(IntermPath) -co$(IntermPath) $(InputFile)
-String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
-String.5.0=$(IntermPath)$(InputName).ls
-String.6.0=2022,1,22,11,4,39
-
-[Root.Include Files.Config.0.Settings.2]
-String.2.0=Assembling $(InputFile)...
-String.3.0=castm8 -xx -l $(ToolsetIncOpts) -o$(IntermPath)$(InputName).$(ObjectExt) $(InputFile)
-String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
-String.5.0=$(IntermPath)$(InputName).ls
-String.6.0=2022,1,22,11,0,24
-
-[Root.Include Files.Config.0.Settings.3]
-String.2.0=Performing Custom Build on $(InputFile)
-String.3.0=
-String.4.0=
-String.5.0=
-String.6.0=2022,1,22,11,0,24
-
-[Root.Include Files.Config.1.Settings.0]
-String.6.0=2022,1,22,11,0,24
-String.8.0=Release
-Int.0=0
-Int.1=0
-
-[Root.Include Files.Config.1.Settings.1]
-String.2.0=Compiling $(InputFile)...
-String.3.0=cxstm8 -iinc  +mods0 -customC-pp $(ToolsetIncOpts) -cl$(IntermPath) -co$(IntermPath) $(InputFile) 
-String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
-String.5.0=$(IntermPath)$(InputName).ls
-String.6.0=2022,1,22,11,0,24
-
-[Root.Include Files.Config.1.Settings.2]
-String.2.0=Assembling $(InputFile)...
-String.3.0=castm8 $(ToolsetIncOpts) -o$(IntermPath)$(InputName).$(ObjectExt) $(InputFile)
-String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
-String.5.0=$(IntermPath)$(InputName).ls
-String.6.0=2022,1,22,11,0,24
-
-[Root.Include Files.Config.1.Settings.3]
-String.2.0=Performing Custom Build on $(InputFile)
-String.3.0=
-String.4.0=
-String.5.0=
-String.6.0=2022,1,22,11,0,24
-
-[Root.Include Files.inc\delay.h]
-ElemType=File
-PathName=inc\delay.h
-Next=Root.Include Files.inc\keypad.h
-
-[Root.Include Files.inc\keypad.h]
-ElemType=File
-PathName=inc\keypad.h
-Next=Root.Include Files.inc\milis.h
-
-[Root.Include Files.inc\milis.h]
-ElemType=File
-PathName=inc\milis.h
-Next=Root.Include Files.inc\spse_stm8.h
-
-[Root.Include Files.inc\spse_stm8.h]
-ElemType=File
-PathName=inc\spse_stm8.h
-Next=Root.Include Files.inc\stm8_hd44780.h
-
-[Root.Include Files.inc\stm8_hd44780.h]
-ElemType=File
-PathName=inc\stm8_hd44780.h
-Next=Root.Include Files.inc\stm8_spse_i2c.h
-
-[Root.Include Files.inc\stm8_spse_i2c.h]
-ElemType=File
-PathName=inc\stm8_spse_i2c.h
-Next=Root.Include Files.inc\stm8s.h
-
-[Root.Include Files.inc\stm8s.h]
-ElemType=File
-PathName=inc\stm8s.h
-Next=Root.Include Files.inc\stm8s_adc2.h
-
-[Root.Include Files.inc\stm8s_adc2.h]
-ElemType=File
-PathName=inc\stm8s_adc2.h
-Next=Root.Include Files.inc\stm8s_awu.h
-
-[Root.Include Files.inc\stm8s_awu.h]
-ElemType=File
-PathName=inc\stm8s_awu.h
-Next=Root.Include Files.inc\stm8s_beep.h
-
-[Root.Include Files.inc\stm8s_beep.h]
-ElemType=File
-PathName=inc\stm8s_beep.h
-Next=Root.Include Files.inc\stm8s_can.h
-
-[Root.Include Files.inc\stm8s_can.h]
-ElemType=File
-PathName=inc\stm8s_can.h
-Next=Root.Include Files.inc\stm8s_clk.h
-
-[Root.Include Files.inc\stm8s_clk.h]
-ElemType=File
-PathName=inc\stm8s_clk.h
-Next=Root.Include Files.inc\stm8s_conf.h
-
-[Root.Include Files.inc\stm8s_conf.h]
-ElemType=File
-PathName=inc\stm8s_conf.h
-Next=Root.Include Files.inc\stm8s_exti.h
-
-[Root.Include Files.inc\stm8s_exti.h]
-ElemType=File
-PathName=inc\stm8s_exti.h
-Next=Root.Include Files.inc\stm8s_flash.h
-
-[Root.Include Files.inc\stm8s_flash.h]
-ElemType=File
-PathName=inc\stm8s_flash.h
-Next=Root.Include Files.inc\stm8s_gpio.h
-
-[Root.Include Files.inc\stm8s_gpio.h]
-ElemType=File
-PathName=inc\stm8s_gpio.h
-Next=Root.Include Files.inc\stm8s_i2c.h
-
-[Root.Include Files.inc\stm8s_i2c.h]
-ElemType=File
-PathName=inc\stm8s_i2c.h
-Next=Root.Include Files.inc\stm8s_it.h
-
-[Root.Include Files.inc\stm8s_it.h]
-ElemType=File
-PathName=inc\stm8s_it.h
-Next=Root.Include Files.inc\stm8s_itc.h
-
-[Root.Include Files.inc\stm8s_itc.h]
-ElemType=File
-PathName=inc\stm8s_itc.h
-Next=Root.Include Files.inc\stm8s_iwdg.h
-
-[Root.Include Files.inc\stm8s_iwdg.h]
-ElemType=File
-PathName=inc\stm8s_iwdg.h
-Next=Root.Include Files.inc\stm8s_rst.h
-
-[Root.Include Files.inc\stm8s_rst.h]
-ElemType=File
-PathName=inc\stm8s_rst.h
-Next=Root.Include Files.inc\stm8s_spi.h
-
-[Root.Include Files.inc\stm8s_spi.h]
-ElemType=File
-PathName=inc\stm8s_spi.h
-Next=Root.Include Files.inc\stm8s_tim1.h
-
-[Root.Include Files.inc\stm8s_tim1.h]
-ElemType=File
-PathName=inc\stm8s_tim1.h
-Next=Root.Include Files.inc\stm8s_tim2.h
-
-[Root.Include Files.inc\stm8s_tim2.h]
-ElemType=File
-PathName=inc\stm8s_tim2.h
-Next=Root.Include Files.inc\stm8s_tim3.h
-
-[Root.Include Files.inc\stm8s_tim3.h]
-ElemType=File
-PathName=inc\stm8s_tim3.h
-Next=Root.Include Files.inc\stm8s_tim4.h
-
-[Root.Include Files.inc\stm8s_tim4.h]
-ElemType=File
-PathName=inc\stm8s_tim4.h
-Next=Root.Include Files.inc\stm8s_uart1.h
-
-[Root.Include Files.inc\stm8s_uart1.h]
-ElemType=File
-PathName=inc\stm8s_uart1.h
-Next=Root.Include Files.inc\stm8s_uart3.h
-
-[Root.Include Files.inc\stm8s_uart3.h]
-ElemType=File
-PathName=inc\stm8s_uart3.h
-Next=Root.Include Files.inc\stm8s_wwdg.h
-
-[Root.Include Files.inc\stm8s_wwdg.h]
-ElemType=File
-PathName=inc\stm8s_wwdg.h
-Next=Root.Include Files.inc\swspi.h
-
-[Root.Include Files.inc\swspi.h]
-ElemType=File
-PathName=inc\swspi.h

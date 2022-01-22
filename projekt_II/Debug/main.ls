@@ -3,329 +3,479 @@
    3                     ; Generator (Limited) V4.5.4 - 16 Dec 2021
   15                     	bsct
   16  0000               _status:
-  17  0000 0a            	dc.b	10
+  17  0000 0b            	dc.b	11
   18  0001               _heslo:
   19  0001 07            	dc.b	7
   20  0002 05            	dc.b	5
   21  0003 01            	dc.b	1
   22  0004 01            	dc.b	1
   23  0005 00            	ds.b	1
-  24  0006               _entry:
-  25  0006 0a            	dc.b	10
-  26  0007 0a            	dc.b	10
-  27  0008 0a            	dc.b	10
-  28  0009 0a            	dc.b	10
+  24  0006               _security_pass:
+  25  0006 01            	dc.b	1
+  26  0007 02            	dc.b	2
+  27  0008 03            	dc.b	3
+  28  0009 04            	dc.b	4
   29  000a 00            	ds.b	1
-  30  000b               _pointer:
-  31  000b 00            	dc.b	0
-  62                     ; 31 void main(void){
-  64                     	switch	.text
-  65  0000               _main:
-  69                     ; 32 	init();
-  71  0000 ad04          	call	_init
-  73  0002               L12:
-  74                     ; 35 		process_keypad();			// Aktualizuje stisk klávesy
-  76  0002 ad10          	call	_process_keypad
-  79  0004 20fc          	jra	L12
- 106                     ; 43 void init(void){
- 107                     	switch	.text
- 108  0006               _init:
- 112                     ; 44 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);	 					// 16MHz z interního RC oscilátoru
- 114  0006 4f            	clr	a
- 115  0007 cd0000        	call	_CLK_HSIPrescalerConfig
- 117                     ; 46 	init_milis();						// Dekralace vnitøního èasu v STM 
- 119  000a cd0000        	call	_init_milis
- 121                     ; 47 	keypad_init();					// Deklarace nastavení pinù na klávesnici
- 123  000d cd0000        	call	_keypad_init
- 125                     ; 48 	lcd_init();							// Nastavení LDC displeje
- 127  0010 cd0000        	call	_lcd_init
- 129                     ; 51 }
- 132  0013 81            	ret
- 135                     	bsct
- 136  000c               L53_minule_stisknuto:
- 137  000c ff            	dc.b	255
- 138  000d               L73_last_time:
- 139  000d 0000          	dc.w	0
- 227                     .const:	section	.text
- 228  0000               L41:
- 229  0000 005a          	dc.w	L14
- 230  0002 0063          	dc.w	L34
- 231  0004 006c          	dc.w	L54
- 232  0006 0075          	dc.w	L74
- 233  0008 007e          	dc.w	L15
- 234  000a 0087          	dc.w	L35
- 235  000c 008e          	dc.w	L55
- 236  000e 0095          	dc.w	L75
- 237  0010 009b          	dc.w	L16
- 238  0012 00a1          	dc.w	L36
- 239  0014 00a7          	dc.w	L56
- 240  0016 00c2          	dc.w	L76
- 241                     ; 53 void process_keypad(void){
- 242                     	switch	.text
- 243  0014               _process_keypad:
- 245  0014 5223          	subw	sp,#35
- 246       00000023      OFST:	set	35
- 249                     ; 59 	uint8_t pravda = 1;
- 251  0016 a601          	ld	a,#1
- 252  0018 6b21          	ld	(OFST-2,sp),a
- 254                     ; 62 	if(milis()-last_time > 20){ // každých 20 ms ...
- 256  001a cd0000        	call	_milis
- 258  001d 72b0000d      	subw	x,L73_last_time
- 259  0021 a30015        	cpw	x,#21
- 260  0024 2403          	jruge	L61
- 261  0026 cc0114        	jp	L331
- 262  0029               L61:
- 263                     ; 63 		last_time = milis();
- 265  0029 cd0000        	call	_milis
- 267  002c bf0d          	ldw	L73_last_time,x
- 268                     ; 64 		stisknuto = keypad_scan(); // ... skenujeme klávesnici
- 270  002e cd0000        	call	_keypad_scan
- 272  0031 6b22          	ld	(OFST-1,sp),a
- 274                     ; 66 		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvolnìno a pak stisknuto
- 276  0033 b60c          	ld	a,L53_minule_stisknuto
- 277  0035 a1ff          	cp	a,#255
- 278  0037 2703          	jreq	L02
- 279  0039 cc010a        	jp	L531
- 280  003c               L02:
- 282  003c 7b22          	ld	a,(OFST-1,sp)
- 283  003e a1ff          	cp	a,#255
- 284  0040 2603          	jrne	L22
- 285  0042 cc010a        	jp	L531
- 286  0045               L22:
- 287                     ; 67 			minule_stisknuto = stisknuto;
- 289  0045 7b22          	ld	a,(OFST-1,sp)
- 290  0047 b70c          	ld	L53_minule_stisknuto,a
- 291                     ; 69 			switch(stisknuto) {			// Switcher pro stisk					//  program bude ukládat jednotlivé èíslice
- 293  0049 7b22          	ld	a,(OFST-1,sp)
- 295                     ; 134 					break;
- 296  004b a10c          	cp	a,#12
- 297  004d 2407          	jruge	L21
- 298  004f 5f            	clrw	x
- 299  0050 97            	ld	xl,a
- 300  0051 58            	sllw	x
- 301  0052 de0000        	ldw	x,(L41,x)
- 302  0055 fc            	jp	(x)
- 303  0056               L21:
- 304  0056 ac0a010a      	jpf	L531
- 305  005a               L14:
- 306                     ; 70 				case 0 :
- 306                     ; 71 					click(stisknuto);
- 308  005a 7b22          	ld	a,(OFST-1,sp)
- 309  005c cd0117        	call	_click
- 311                     ; 72 					break;
- 313  005f ac0a010a      	jpf	L531
- 314  0063               L34:
- 315                     ; 73 				case 1 :
- 315                     ; 74 					click(stisknuto);
- 317  0063 7b22          	ld	a,(OFST-1,sp)
- 318  0065 cd0117        	call	_click
- 320                     ; 75 					break;
- 322  0068 ac0a010a      	jpf	L531
- 323  006c               L54:
- 324                     ; 76 				case 2 :
- 324                     ; 77 					click(stisknuto);
- 326  006c 7b22          	ld	a,(OFST-1,sp)
- 327  006e cd0117        	call	_click
- 329                     ; 78 					break;
- 331  0071 ac0a010a      	jpf	L531
- 332  0075               L74:
- 333                     ; 79 				case 3 :
- 333                     ; 80 					click(stisknuto);
- 335  0075 7b22          	ld	a,(OFST-1,sp)
- 336  0077 cd0117        	call	_click
- 338                     ; 81 					break;
- 340  007a ac0a010a      	jpf	L531
- 341  007e               L15:
- 342                     ; 82 				case 4 :
- 342                     ; 83 					click(stisknuto);
- 344  007e 7b22          	ld	a,(OFST-1,sp)
- 345  0080 cd0117        	call	_click
- 347                     ; 84 					break;
- 349  0083 ac0a010a      	jpf	L531
- 350  0087               L35:
- 351                     ; 85 				case 5 :
- 351                     ; 86 					click(stisknuto);
- 353  0087 7b22          	ld	a,(OFST-1,sp)
- 354  0089 cd0117        	call	_click
- 356                     ; 87 					break;
- 358  008c 207c          	jra	L531
- 359  008e               L55:
- 360                     ; 88 				case 6 :
- 360                     ; 89 					click(stisknuto);
- 362  008e 7b22          	ld	a,(OFST-1,sp)
- 363  0090 cd0117        	call	_click
- 365                     ; 90 					break;
- 367  0093 2075          	jra	L531
- 368  0095               L75:
- 369                     ; 91 				case 7 :
- 369                     ; 92 					click(stisknuto);
- 371  0095 7b22          	ld	a,(OFST-1,sp)
- 372  0097 ad7e          	call	_click
- 374                     ; 93 					break;
- 376  0099 206f          	jra	L531
- 377  009b               L16:
- 378                     ; 94 				case 8 :
- 378                     ; 95 					click(stisknuto);
- 380  009b 7b22          	ld	a,(OFST-1,sp)
- 381  009d ad78          	call	_click
- 383                     ; 96 					break;
- 385  009f 2069          	jra	L531
- 386  00a1               L36:
- 387                     ; 97 				case 9 :
- 387                     ; 98 					click(stisknuto);
- 389  00a1 7b22          	ld	a,(OFST-1,sp)
- 390  00a3 ad72          	call	_click
- 392                     ; 99 					break;
- 394  00a5 2063          	jra	L531
- 395  00a7               L56:
- 396                     ; 100 				case 10 : //  *
- 396                     ; 101 					for(i = 0; i < (sizeof(entry)-1); i++){
- 398  00a7 0f23          	clr	(OFST+0,sp)
- 400  00a9               L341:
- 401                     ; 102 						entry[i] = 10;
- 403  00a9 7b23          	ld	a,(OFST+0,sp)
- 404  00ab 5f            	clrw	x
- 405  00ac 97            	ld	xl,a
- 406  00ad a60a          	ld	a,#10
- 407  00af e706          	ld	(_entry,x),a
- 408                     ; 101 					for(i = 0; i < (sizeof(entry)-1); i++){
- 410  00b1 0c23          	inc	(OFST+0,sp)
- 414  00b3 7b23          	ld	a,(OFST+0,sp)
- 415  00b5 a104          	cp	a,#4
- 416  00b7 25f0          	jrult	L341
- 417                     ; 109 					pointer = 0;
- 419  00b9 3f0b          	clr	_pointer
- 420                     ; 110 					lcd_clear();
- 422  00bb a601          	ld	a,#1
- 423  00bd cd0000        	call	_lcd_command
- 425                     ; 111 					break;
- 427  00c0 2048          	jra	L531
- 428  00c2               L76:
- 429                     ; 112 				case 11 : //  #
- 429                     ; 113 					lcd_gotoxy(0,1);
- 431  00c2 ae0001        	ldw	x,#1
- 432  00c5 cd0000        	call	_lcd_gotoxy
- 434                     ; 121 					for(i = 0; i < (sizeof(entry)-1); i++){
- 436  00c8 0f23          	clr	(OFST+0,sp)
- 438  00ca               L151:
- 439                     ; 122 						if (entry[i] != heslo[i]){
- 441  00ca 7b23          	ld	a,(OFST+0,sp)
- 442  00cc 5f            	clrw	x
- 443  00cd 97            	ld	xl,a
- 444  00ce 7b23          	ld	a,(OFST+0,sp)
- 445  00d0 905f          	clrw	y
- 446  00d2 9097          	ld	yl,a
- 447  00d4 90e606        	ld	a,(_entry,y)
- 448  00d7 e101          	cp	a,(_heslo,x)
- 449  00d9 2702          	jreq	L751
- 450                     ; 123 							pravda = 0;
- 452  00db 0f21          	clr	(OFST-2,sp)
- 454  00dd               L751:
- 455                     ; 121 					for(i = 0; i < (sizeof(entry)-1); i++){
- 457  00dd 0c23          	inc	(OFST+0,sp)
- 461  00df 7b23          	ld	a,(OFST+0,sp)
- 462  00e1 a104          	cp	a,#4
- 463  00e3 25e5          	jrult	L151
- 464                     ; 127 					if(pravda){
- 466  00e5 0d21          	tnz	(OFST-2,sp)
- 467  00e7 270e          	jreq	L161
- 468                     ; 128 						sprintf(text,"eallowed");
- 470  00e9 ae001f        	ldw	x,#L361
- 471  00ec 89            	pushw	x
- 472  00ed 96            	ldw	x,sp
- 473  00ee 1c0003        	addw	x,#OFST-32
- 474  00f1 cd0000        	call	_sprintf
- 476  00f4 85            	popw	x
- 478  00f5 200c          	jra	L561
- 479  00f7               L161:
- 480                     ; 131 						sprintf(text,"denied");
- 482  00f7 ae0018        	ldw	x,#L761
- 483  00fa 89            	pushw	x
- 484  00fb 96            	ldw	x,sp
- 485  00fc 1c0003        	addw	x,#OFST-32
- 486  00ff cd0000        	call	_sprintf
- 488  0102 85            	popw	x
- 489  0103               L561:
- 490                     ; 133 					lcd_puts(text);
- 492  0103 96            	ldw	x,sp
- 493  0104 1c0001        	addw	x,#OFST-34
- 494  0107 cd0000        	call	_lcd_puts
- 496                     ; 134 					break;
- 498  010a               L141:
- 499  010a               L531:
- 500                     ; 138 		if(stisknuto == 0xFF){minule_stisknuto=0xFF;}
- 502  010a 7b22          	ld	a,(OFST-1,sp)
- 503  010c a1ff          	cp	a,#255
- 504  010e 2604          	jrne	L331
- 507  0110 35ff000c      	mov	L53_minule_stisknuto,#255
- 508  0114               L331:
- 509                     ; 140 }
- 512  0114 5b23          	addw	sp,#35
- 513  0116 81            	ret
- 551                     ; 141 void click(uint8_t number){
- 552                     	switch	.text
- 553  0117               _click:
- 555  0117 88            	push	a
- 556       00000000      OFST:	set	0
- 559                     ; 142 	lcd_gotoxy(pointer,0);
- 561  0118 b60b          	ld	a,_pointer
- 562  011a 5f            	clrw	x
- 563  011b 95            	ld	xh,a
- 564  011c cd0000        	call	_lcd_gotoxy
- 566                     ; 143 	if(pointer < sizeof(entry)-1){
- 568  011f b60b          	ld	a,_pointer
- 569  0121 a104          	cp	a,#4
- 570  0123 240f          	jruge	L112
- 571                     ; 144 		lcd_putchar('*');
- 573  0125 a62a          	ld	a,#42
- 574  0127 cd0000        	call	_lcd_data
- 576                     ; 145 		entry[pointer] = number;
- 578  012a b60b          	ld	a,_pointer
- 579  012c 5f            	clrw	x
- 580  012d 97            	ld	xl,a
- 581  012e 7b01          	ld	a,(OFST+1,sp)
- 582  0130 e706          	ld	(_entry,x),a
- 583                     ; 146 		pointer ++;
- 585  0132 3c0b          	inc	_pointer
- 586  0134               L112:
- 587                     ; 148 }
- 590  0134 84            	pop	a
- 591  0135 81            	ret
- 614                     ; 151 void kontrola(void){
- 615                     	switch	.text
- 616  0136               _kontrola:
- 620                     ; 153 }
- 623  0136 81            	ret
- 658                     ; 166 void assert_failed(u8* file, u32 line)
- 658                     ; 167 { 
- 659                     	switch	.text
- 660  0137               _assert_failed:
- 664  0137               L142:
- 665  0137 20fe          	jra	L142
- 718                     	xdef	_main
- 719                     	xdef	_pointer
- 720                     	xdef	_entry
- 721                     	xdef	_heslo
- 722                     	xdef	_status
- 723                     	xdef	_click
- 724                     	xdef	_kontrola
- 725                     	xdef	_process_keypad
- 726                     	xdef	_init
- 727                     	xref	_sprintf
- 728                     	xref	_lcd_puts
- 729                     	xref	_lcd_gotoxy
- 730                     	xref	_lcd_init
- 731                     	xref	_lcd_data
- 732                     	xref	_lcd_command
- 733                     	xref	_keypad_scan
- 734                     	xref	_keypad_init
- 735                     	xref	_init_milis
- 736                     	xref	_milis
- 737                     	xdef	_assert_failed
- 738                     	xref	_CLK_HSIPrescalerConfig
- 739                     	switch	.const
- 740  0018               L761:
- 741  0018 64656e696564  	dc.b	"denied",0
- 742  001f               L361:
- 743  001f 65616c6c6f77  	dc.b	"eallowed",0
- 763                     	end
+  30  000b               _entry:
+  31  000b 0a            	dc.b	10
+  32  000c 0a            	dc.b	10
+  33  000d 0a            	dc.b	10
+  34  000e 0a            	dc.b	10
+  35  000f 00            	ds.b	1
+  36  0010               _pointer:
+  37  0010 00            	dc.b	0
+  38  0011               _max_attemps:
+  39  0011 03            	dc.b	3
+  40  0012               _attemp:
+  41  0012 01            	dc.b	1
+  73                     ; 43 void main(void){
+  75                     	switch	.text
+  76  0000               _main:
+  80                     ; 44 	init();
+  82  0000 ad07          	call	_init
+  84  0002               L12:
+  85                     ; 47 		process_keypad();			// Aktualizuje stisk klï¿½vesy
+  87  0002 cd009a        	call	_process_keypad
+  89                     ; 48 		RGB_manager();				// Signalizace na RGB diodÄ›
+  91  0005 ad31          	call	_RGB_manager
+  94  0007 20f9          	jra	L12
+ 122                     ; 56 void init(void){
+ 123                     	switch	.text
+ 124  0009               _init:
+ 128                     ; 57 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);	 					// 16MHz z internï¿½ho RC oscilï¿½toru
+ 130  0009 4f            	clr	a
+ 131  000a cd0000        	call	_CLK_HSIPrescalerConfig
+ 133                     ; 58 	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);				// Porty pro RGB diodu
+ 135  000d 4bd0          	push	#208
+ 136  000f 4b02          	push	#2
+ 137  0011 ae500a        	ldw	x,#20490
+ 138  0014 cd0000        	call	_GPIO_Init
+ 140  0017 85            	popw	x
+ 141                     ; 59 	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);
+ 143  0018 4bd0          	push	#208
+ 144  001a 4b02          	push	#2
+ 145  001c ae500a        	ldw	x,#20490
+ 146  001f cd0000        	call	_GPIO_Init
+ 148  0022 85            	popw	x
+ 149                     ; 60 	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);
+ 151  0023 4bd0          	push	#208
+ 152  0025 4b02          	push	#2
+ 153  0027 ae500a        	ldw	x,#20490
+ 154  002a cd0000        	call	_GPIO_Init
+ 156  002d 85            	popw	x
+ 157                     ; 63 	init_milis();						// Dekralace vnitï¿½nï¿½ho ï¿½asu v STM 
+ 159  002e cd0000        	call	_init_milis
+ 161                     ; 64 	keypad_init();					// Deklarace nastavenï¿½ pinï¿½ na klï¿½vesnici
+ 163  0031 cd0000        	call	_keypad_init
+ 165                     ; 65 	lcd_init();							// Nastavenï¿½ LDC displeje
+ 167  0034 cd0000        	call	_lcd_init
+ 169                     ; 68 }
+ 172  0037 81            	ret
+ 198                     ; 70 void RGB_manager(void){
+ 199                     	switch	.text
+ 200  0038               _RGB_manager:
+ 204                     ; 71 	if (status == UNLOCKED){
+ 206  0038 b600          	ld	a,_status
+ 207  003a a10c          	cp	a,#12
+ 208  003c 261d          	jrne	L54
+ 209                     ; 72 		R_LOW;
+ 211  003e 4b02          	push	#2
+ 212  0040 ae500a        	ldw	x,#20490
+ 213  0043 cd0000        	call	_GPIO_WriteLow
+ 215  0046 84            	pop	a
+ 216                     ; 73 		G_HIGH;
+ 218  0047 4b04          	push	#4
+ 219  0049 ae500a        	ldw	x,#20490
+ 220  004c cd0000        	call	_GPIO_WriteHigh
+ 222  004f 84            	pop	a
+ 223                     ; 74 		B_LOW;
+ 225  0050 4b08          	push	#8
+ 226  0052 ae500a        	ldw	x,#20490
+ 227  0055 cd0000        	call	_GPIO_WriteLow
+ 229  0058 84            	pop	a
+ 231  0059 203e          	jra	L74
+ 232  005b               L54:
+ 233                     ; 75 	}else if (status == LOCKED){
+ 235  005b b600          	ld	a,_status
+ 236  005d a10b          	cp	a,#11
+ 237  005f 261d          	jrne	L15
+ 238                     ; 76 		R_LOW;
+ 240  0061 4b02          	push	#2
+ 241  0063 ae500a        	ldw	x,#20490
+ 242  0066 cd0000        	call	_GPIO_WriteLow
+ 244  0069 84            	pop	a
+ 245                     ; 77 		G_LOW;
+ 247  006a 4b04          	push	#4
+ 248  006c ae500a        	ldw	x,#20490
+ 249  006f cd0000        	call	_GPIO_WriteLow
+ 251  0072 84            	pop	a
+ 252                     ; 78 		B_HIGH;
+ 254  0073 4b08          	push	#8
+ 255  0075 ae500a        	ldw	x,#20490
+ 256  0078 cd0000        	call	_GPIO_WriteHigh
+ 258  007b 84            	pop	a
+ 260  007c 201b          	jra	L74
+ 261  007e               L15:
+ 262                     ; 80 		R_HIGH;
+ 264  007e 4b02          	push	#2
+ 265  0080 ae500a        	ldw	x,#20490
+ 266  0083 cd0000        	call	_GPIO_WriteHigh
+ 268  0086 84            	pop	a
+ 269                     ; 81 		G_LOW;
+ 271  0087 4b04          	push	#4
+ 272  0089 ae500a        	ldw	x,#20490
+ 273  008c cd0000        	call	_GPIO_WriteLow
+ 275  008f 84            	pop	a
+ 276                     ; 82 		B_LOW;
+ 278  0090 4b08          	push	#8
+ 279  0092 ae500a        	ldw	x,#20490
+ 280  0095 cd0000        	call	_GPIO_WriteLow
+ 282  0098 84            	pop	a
+ 283  0099               L74:
+ 284                     ; 84 }
+ 287  0099 81            	ret
+ 290                     	bsct
+ 291  0013               L55_minule_stisknuto:
+ 292  0013 ff            	dc.b	255
+ 293  0014               L75_last_time:
+ 294  0014 0000          	dc.w	0
+ 360                     .const:	section	.text
+ 361  0000               L61:
+ 362  0000 00d7          	dc.w	L16
+ 363  0002 00dd          	dc.w	L36
+ 364  0004 00e3          	dc.w	L56
+ 365  0006 00e9          	dc.w	L76
+ 366  0008 00ef          	dc.w	L17
+ 367  000a 00f5          	dc.w	L37
+ 368  000c 00fb          	dc.w	L57
+ 369  000e 0101          	dc.w	L77
+ 370  0010 0107          	dc.w	L101
+ 371  0012 010d          	dc.w	L301
+ 372  0014 0113          	dc.w	L501
+ 373  0016 012e          	dc.w	L701
+ 374                     ; 87 void process_keypad(void){
+ 375                     	switch	.text
+ 376  009a               _process_keypad:
+ 378  009a 89            	pushw	x
+ 379       00000002      OFST:	set	2
+ 382                     ; 93 	if(milis()-last_time > 20){ // kaï¿½dï¿½ch 20 ms ...
+ 384  009b cd0000        	call	_milis
+ 386  009e 72b00014      	subw	x,L75_last_time
+ 387  00a2 a30015        	cpw	x,#21
+ 388  00a5 2403          	jruge	L02
+ 389  00a7 cc013a        	jp	L341
+ 390  00aa               L02:
+ 391                     ; 94 		last_time = milis();
+ 393  00aa cd0000        	call	_milis
+ 395  00ad bf14          	ldw	L75_last_time,x
+ 396                     ; 95 		stisknuto = keypad_scan(); // ... skenujeme klï¿½vesnici
+ 398  00af cd0000        	call	_keypad_scan
+ 400  00b2 6b02          	ld	(OFST+0,sp),a
+ 402                     ; 97 		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvolnï¿½no a pak stisknuto
+ 404  00b4 b613          	ld	a,L55_minule_stisknuto
+ 405  00b6 a1ff          	cp	a,#255
+ 406  00b8 2702          	jreq	L22
+ 407  00ba 2074          	jp	L541
+ 408  00bc               L22:
+ 410  00bc 7b02          	ld	a,(OFST+0,sp)
+ 411  00be a1ff          	cp	a,#255
+ 412  00c0 2602          	jrne	L42
+ 413  00c2 206c          	jp	L541
+ 414  00c4               L42:
+ 415                     ; 98 			minule_stisknuto = stisknuto;
+ 417  00c4 7b02          	ld	a,(OFST+0,sp)
+ 418  00c6 b713          	ld	L55_minule_stisknuto,a
+ 419                     ; 100 			switch(stisknuto) {			// Switcher pro stisk					//  program bude uklï¿½dat jednotlivï¿½ ï¿½ï¿½slice
+ 421  00c8 7b02          	ld	a,(OFST+0,sp)
+ 423                     ; 140 					break;
+ 424  00ca a10c          	cp	a,#12
+ 425  00cc 2407          	jruge	L41
+ 426  00ce 5f            	clrw	x
+ 427  00cf 97            	ld	xl,a
+ 428  00d0 58            	sllw	x
+ 429  00d1 de0000        	ldw	x,(L61,x)
+ 430  00d4 fc            	jp	(x)
+ 431  00d5               L41:
+ 432  00d5 2059          	jra	L541
+ 433  00d7               L16:
+ 434                     ; 101 				case 0 :
+ 434                     ; 102 					click(stisknuto);
+ 436  00d7 7b02          	ld	a,(OFST+0,sp)
+ 437  00d9 ad61          	call	_click
+ 439                     ; 103 					break;
+ 441  00db 2053          	jra	L541
+ 442  00dd               L36:
+ 443                     ; 104 				case 1 :
+ 443                     ; 105 					click(stisknuto);
+ 445  00dd 7b02          	ld	a,(OFST+0,sp)
+ 446  00df ad5b          	call	_click
+ 448                     ; 106 					break;
+ 450  00e1 204d          	jra	L541
+ 451  00e3               L56:
+ 452                     ; 107 				case 2 :
+ 452                     ; 108 					click(stisknuto);
+ 454  00e3 7b02          	ld	a,(OFST+0,sp)
+ 455  00e5 ad55          	call	_click
+ 457                     ; 109 					break;
+ 459  00e7 2047          	jra	L541
+ 460  00e9               L76:
+ 461                     ; 110 				case 3 :
+ 461                     ; 111 					click(stisknuto);
+ 463  00e9 7b02          	ld	a,(OFST+0,sp)
+ 464  00eb ad4f          	call	_click
+ 466                     ; 112 					break;
+ 468  00ed 2041          	jra	L541
+ 469  00ef               L17:
+ 470                     ; 113 				case 4 :
+ 470                     ; 114 					click(stisknuto);
+ 472  00ef 7b02          	ld	a,(OFST+0,sp)
+ 473  00f1 ad49          	call	_click
+ 475                     ; 115 					break;
+ 477  00f3 203b          	jra	L541
+ 478  00f5               L37:
+ 479                     ; 116 				case 5 :
+ 479                     ; 117 					click(stisknuto);
+ 481  00f5 7b02          	ld	a,(OFST+0,sp)
+ 482  00f7 ad43          	call	_click
+ 484                     ; 118 					break;
+ 486  00f9 2035          	jra	L541
+ 487  00fb               L57:
+ 488                     ; 119 				case 6 :
+ 488                     ; 120 					click(stisknuto);
+ 490  00fb 7b02          	ld	a,(OFST+0,sp)
+ 491  00fd ad3d          	call	_click
+ 493                     ; 121 					break;
+ 495  00ff 202f          	jra	L541
+ 496  0101               L77:
+ 497                     ; 122 				case 7 :
+ 497                     ; 123 					click(stisknuto);
+ 499  0101 7b02          	ld	a,(OFST+0,sp)
+ 500  0103 ad37          	call	_click
+ 502                     ; 124 					break;
+ 504  0105 2029          	jra	L541
+ 505  0107               L101:
+ 506                     ; 125 				case 8 :
+ 506                     ; 126 					click(stisknuto);
+ 508  0107 7b02          	ld	a,(OFST+0,sp)
+ 509  0109 ad31          	call	_click
+ 511                     ; 127 					break;
+ 513  010b 2023          	jra	L541
+ 514  010d               L301:
+ 515                     ; 128 				case 9 :
+ 515                     ; 129 					click(stisknuto);
+ 517  010d 7b02          	ld	a,(OFST+0,sp)
+ 518  010f ad2b          	call	_click
+ 520                     ; 130 					break;
+ 522  0111 201d          	jra	L541
+ 523  0113               L501:
+ 524                     ; 131 				case 10 : //  *
+ 524                     ; 132 					for(i = 0; i < (sizeof(entry)-1); i++){
+ 526  0113 0f01          	clr	(OFST-1,sp)
+ 528  0115               L351:
+ 529                     ; 133 						entry[i] = 10;
+ 531  0115 7b01          	ld	a,(OFST-1,sp)
+ 532  0117 5f            	clrw	x
+ 533  0118 97            	ld	xl,a
+ 534  0119 a60a          	ld	a,#10
+ 535  011b e70b          	ld	(_entry,x),a
+ 536                     ; 132 					for(i = 0; i < (sizeof(entry)-1); i++){
+ 538  011d 0c01          	inc	(OFST-1,sp)
+ 542  011f 7b01          	ld	a,(OFST-1,sp)
+ 543  0121 a104          	cp	a,#4
+ 544  0123 25f0          	jrult	L351
+ 545                     ; 135 					pointer = 0;
+ 547  0125 3f10          	clr	_pointer
+ 548                     ; 136 					lcd_clear();
+ 550  0127 a601          	ld	a,#1
+ 551  0129 cd0000        	call	_lcd_command
+ 553                     ; 137 					break;
+ 555  012c 2002          	jra	L541
+ 556  012e               L701:
+ 557                     ; 138 				case 11 : //  #
+ 557                     ; 139 					kontrola();
+ 559  012e ad2b          	call	_kontrola
+ 561                     ; 140 					break;
+ 563  0130               L151:
+ 564  0130               L541:
+ 565                     ; 144 		if(stisknuto == 0xFF){minule_stisknuto=0xFF;}
+ 567  0130 7b02          	ld	a,(OFST+0,sp)
+ 568  0132 a1ff          	cp	a,#255
+ 569  0134 2604          	jrne	L341
+ 572  0136 35ff0013      	mov	L55_minule_stisknuto,#255
+ 573  013a               L341:
+ 574                     ; 146 }
+ 577  013a 85            	popw	x
+ 578  013b 81            	ret
+ 616                     ; 147 void click(uint8_t number){
+ 617                     	switch	.text
+ 618  013c               _click:
+ 620  013c 88            	push	a
+ 621       00000000      OFST:	set	0
+ 624                     ; 148 	lcd_gotoxy(pointer,0);
+ 626  013d b610          	ld	a,_pointer
+ 627  013f 5f            	clrw	x
+ 628  0140 95            	ld	xh,a
+ 629  0141 cd0000        	call	_lcd_gotoxy
+ 631                     ; 149 	if(pointer < sizeof(entry)-1){
+ 633  0144 b610          	ld	a,_pointer
+ 634  0146 a104          	cp	a,#4
+ 635  0148 240f          	jruge	L102
+ 636                     ; 150 		lcd_putchar('*');
+ 638  014a a62a          	ld	a,#42
+ 639  014c cd0000        	call	_lcd_data
+ 641                     ; 151 		entry[pointer] = number;
+ 643  014f b610          	ld	a,_pointer
+ 644  0151 5f            	clrw	x
+ 645  0152 97            	ld	xl,a
+ 646  0153 7b01          	ld	a,(OFST+1,sp)
+ 647  0155 e70b          	ld	(_entry,x),a
+ 648                     ; 152 		pointer ++;
+ 650  0157 3c10          	inc	_pointer
+ 651  0159               L102:
+ 652                     ; 154 }
+ 655  0159 84            	pop	a
+ 656  015a 81            	ret
+ 718                     ; 157 void kontrola(void){
+ 719                     	switch	.text
+ 720  015b               _kontrola:
+ 722  015b 5222          	subw	sp,#34
+ 723       00000022      OFST:	set	34
+ 726                     ; 158 	uint8_t pravda = 1;
+ 728  015d a601          	ld	a,#1
+ 729  015f 6b21          	ld	(OFST-1,sp),a
+ 731                     ; 161 	lcd_gotoxy(0,1);
+ 733  0161 ae0001        	ldw	x,#1
+ 734  0164 cd0000        	call	_lcd_gotoxy
+ 736                     ; 163 	if(status / 10 == 1){
+ 738  0167 b600          	ld	a,_status
+ 739  0169 5f            	clrw	x
+ 740  016a 97            	ld	xl,a
+ 741  016b a60a          	ld	a,#10
+ 742  016d cd0000        	call	c_sdivx
+ 744  0170 a30001        	cpw	x,#1
+ 745  0173 261f          	jrne	L132
+ 746                     ; 164 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 748  0175 0f22          	clr	(OFST+0,sp)
+ 750  0177               L332:
+ 751                     ; 165 			if (entry[i] != heslo[i]){
+ 753  0177 7b22          	ld	a,(OFST+0,sp)
+ 754  0179 5f            	clrw	x
+ 755  017a 97            	ld	xl,a
+ 756  017b 7b22          	ld	a,(OFST+0,sp)
+ 757  017d 905f          	clrw	y
+ 758  017f 9097          	ld	yl,a
+ 759  0181 90e60b        	ld	a,(_entry,y)
+ 760  0184 e101          	cp	a,(_heslo,x)
+ 761  0186 2702          	jreq	L142
+ 762                     ; 166 				pravda = 0;
+ 764  0188 0f21          	clr	(OFST-1,sp)
+ 766  018a               L142:
+ 767                     ; 164 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 769  018a 0c22          	inc	(OFST+0,sp)
+ 773  018c 7b22          	ld	a,(OFST+0,sp)
+ 774  018e a104          	cp	a,#4
+ 775  0190 25e5          	jrult	L332
+ 777  0192 201d          	jra	L342
+ 778  0194               L132:
+ 779                     ; 170 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 781  0194 0f22          	clr	(OFST+0,sp)
+ 783  0196               L542:
+ 784                     ; 171 			if (entry[i] != security_pass[i]){
+ 786  0196 7b22          	ld	a,(OFST+0,sp)
+ 787  0198 5f            	clrw	x
+ 788  0199 97            	ld	xl,a
+ 789  019a 7b22          	ld	a,(OFST+0,sp)
+ 790  019c 905f          	clrw	y
+ 791  019e 9097          	ld	yl,a
+ 792  01a0 90e60b        	ld	a,(_entry,y)
+ 793  01a3 e106          	cp	a,(_security_pass,x)
+ 794  01a5 2702          	jreq	L352
+ 795                     ; 172 				pravda = 0;
+ 797  01a7 0f21          	clr	(OFST-1,sp)
+ 799  01a9               L352:
+ 800                     ; 170 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 802  01a9 0c22          	inc	(OFST+0,sp)
+ 806  01ab 7b22          	ld	a,(OFST+0,sp)
+ 807  01ad a104          	cp	a,#4
+ 808  01af 25e5          	jrult	L542
+ 809  01b1               L342:
+ 810                     ; 177 	if(pravda){
+ 812  01b1 0d21          	tnz	(OFST-1,sp)
+ 813  01b3 2712          	jreq	L552
+ 814                     ; 178 		sprintf(text,"allowed");
+ 816  01b5 ae001f        	ldw	x,#L752
+ 817  01b8 89            	pushw	x
+ 818  01b9 96            	ldw	x,sp
+ 819  01ba 1c0003        	addw	x,#OFST-31
+ 820  01bd cd0000        	call	_sprintf
+ 822  01c0 85            	popw	x
+ 823                     ; 180 		attemp = 1;
+ 825  01c1 35010012      	mov	_attemp,#1
+ 827  01c5 200e          	jra	L162
+ 828  01c7               L552:
+ 829                     ; 183 		sprintf(text,"denied");
+ 831  01c7 ae0018        	ldw	x,#L362
+ 832  01ca 89            	pushw	x
+ 833  01cb 96            	ldw	x,sp
+ 834  01cc 1c0003        	addw	x,#OFST-31
+ 835  01cf cd0000        	call	_sprintf
+ 837  01d2 85            	popw	x
+ 838                     ; 184 		attemp ++;
+ 840  01d3 3c12          	inc	_attemp
+ 841  01d5               L162:
+ 842                     ; 186 	lcd_puts(text);
+ 844  01d5 96            	ldw	x,sp
+ 845  01d6 1c0001        	addw	x,#OFST-33
+ 846  01d9 cd0000        	call	_lcd_puts
+ 848                     ; 188 	if (attemp > max_attemps){
+ 850  01dc b612          	ld	a,_attemp
+ 851  01de b111          	cp	a,_max_attemps
+ 852  01e0 2304          	jrule	L562
+ 853                     ; 189 		status = UNLOCKED_B;
+ 855  01e2 35160000      	mov	_status,#22
+ 856  01e6               L562:
+ 857                     ; 191 }
+ 860  01e6 5b22          	addw	sp,#34
+ 861  01e8 81            	ret
+ 896                     ; 204 void assert_failed(u8* file, u32 line)
+ 896                     ; 205 { 
+ 897                     	switch	.text
+ 898  01e9               _assert_failed:
+ 902  01e9               L503:
+ 903  01e9 20fe          	jra	L503
+ 984                     	xdef	_main
+ 985                     	xdef	_attemp
+ 986                     	xdef	_max_attemps
+ 987                     	xdef	_pointer
+ 988                     	xdef	_entry
+ 989                     	xdef	_security_pass
+ 990                     	xdef	_heslo
+ 991                     	xdef	_status
+ 992                     	xdef	_RGB_manager
+ 993                     	xdef	_click
+ 994                     	xdef	_kontrola
+ 995                     	xdef	_process_keypad
+ 996                     	xdef	_init
+ 997                     	xref	_sprintf
+ 998                     	xref	_lcd_puts
+ 999                     	xref	_lcd_gotoxy
+1000                     	xref	_lcd_init
+1001                     	xref	_lcd_data
+1002                     	xref	_lcd_command
+1003                     	xref	_keypad_scan
+1004                     	xref	_keypad_init
+1005                     	xref	_init_milis
+1006                     	xref	_milis
+1007                     	xdef	_assert_failed
+1008                     	xref	_GPIO_WriteLow
+1009                     	xref	_GPIO_WriteHigh
+1010                     	xref	_GPIO_Init
+1011                     	xref	_CLK_HSIPrescalerConfig
+1012                     	switch	.const
+1013  0018               L362:
+1014  0018 64656e696564  	dc.b	"denied",0
+1015  001f               L752:
+1016  001f 616c6c6f7765  	dc.b	"allowed",0
+1017                     	xref.b	c_x
+1037                     	xref	c_sdivx
+1038                     	end

@@ -1,4 +1,4 @@
-//																													Inkludování
+//																													Inkludovï¿½nï¿½
 #include "stm8s.h"		
 #include "milis.h"
 #include "keypad.h"
@@ -8,31 +8,44 @@
 //#include "swspi.h"
 
 //																													deklrace
-#define LOCKED			10
-#define UNLOCKED 		20
-#define LOCKED_B		11
-#define UNLOCKED_B	21
+#define LOCKED			11
+#define UNLOCKED 		12
+#define LOCKED_B		21
+#define UNLOCKED_B		22
+
+#define COLOR_PORT		GPIOC
+#define R_HIGH			GPIO_WriteHigh(GPIOC,GPIO_PIN_1)
+#define R_LOW			GPIO_WriteLow(GPIOC,GPIO_PIN_1)
+#define	G_HIGH			GPIO_WriteHigh(GPIOC,GPIO_PIN_2)
+#define G_LOW			GPIO_WriteLow(GPIOC,GPIO_PIN_2)
+#define B_HIGH			GPIO_WriteHigh(GPIOC,GPIO_PIN_3)
+#define B_LOW 			GPIO_WriteLow(GPIOC,GPIO_PIN_3)
 
 //																													funkce
 void init(void);
 void process_keypad(void);
 void kontrola(void);
 void click(uint8_t);
+void RGB_manager(void);
 
-//																													Promìnné
+//																													Promï¿½nnï¿½
 uint8_t status = LOCKED;
 uint8_t heslo[5] = {7, 5, 1, 1};
+uint8_t security_pass[5] = {1, 2, 3, 4};
 uint8_t entry[5] = {10, 10, 10, 10};
 uint8_t pointer = 0;
+uint8_t max_attemps = 3;	// celkem pokusÅ¯
+uint8_t attemp = 1;
 
 
 
-//---------------------------------------------------------- Hlavní funkce
+//---------------------------------------------------------- Hlavnï¿½ funkce
 void main(void){
 	init();
 
   while (1){
-		process_keypad();			// Aktualizuje stisk klávesy
+		process_keypad();			// Aktualizuje stisk klï¿½vesy
+		RGB_manager();				// Signalizace na RGB diodÄ›
 	}
 }
 
@@ -41,32 +54,50 @@ void main(void){
 //---------------------------------------------------------- Funkce
 //------------------------- Inicializace
 void init(void){
-	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);	 					// 16MHz z interního RC oscilátoru
+	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);	 					// 16MHz z internï¿½ho RC oscilï¿½toru
+	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);				// Porty pro RGB diodu
+	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);
+	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);
+
 	
-	init_milis();						// Dekralace vnitøního èasu v STM 
-	keypad_init();					// Deklarace nastavení pinù na klávesnici
-	lcd_init();							// Nastavení LDC displeje
+	init_milis();						// Dekralace vnitï¿½nï¿½ho ï¿½asu v STM 
+	keypad_init();					// Deklarace nastavenï¿½ pinï¿½ na klï¿½vesnici
+	lcd_init();							// Nastavenï¿½ LDC displeje
 	
 	//GPIO_Init(GPIOC,GPIO_PIN_5,GPIO_MODE_OUT_PP_LOW_SLOW);
 }
-//------------------------- Funkce pro stisk klávesy
-void process_keypad(void){
-	static uint8_t minule_stisknuto=0xFF;	// poslední stav klávesnice (zde "volno")
-	static uint16_t last_time=0; 					// poslední èas kontroly stisku
-	uint8_t stisknuto;										// aktuálnì stisknutáklávesnice
-	char text[32];
-	uint8_t i;
-	uint8_t pravda = 1;
-	
+//------------------------- Funkce RGB
+void RGB_manager(void){
+	if (status == UNLOCKED){
+		R_LOW;
+		G_HIGH;
+		B_LOW;
+	}else if (status == LOCKED){
+		R_LOW;
+		G_LOW;
+		B_HIGH;
+	}else{
+		R_HIGH;
+		G_LOW;
+		B_LOW;
+	}
+}
 
-	if(milis()-last_time > 20){ // každých 20 ms ...
+//------------------------- Funkce pro stisk klï¿½vesy
+void process_keypad(void){
+	static uint8_t minule_stisknuto=0xFF;	// poslednï¿½ stav klï¿½vesnice (zde "volno")
+	static uint16_t last_time=0; 					// poslednï¿½ ï¿½as kontroly stisku
+	uint8_t stisknuto;										// aktuï¿½lnï¿½ stisknutï¿½klï¿½vesnice
+	uint8_t i;
+
+	if(milis()-last_time > 20){ // kaï¿½dï¿½ch 20 ms ...
 		last_time = milis();
-		stisknuto = keypad_scan(); // ... skenujeme klávesnici
+		stisknuto = keypad_scan(); // ... skenujeme klï¿½vesnici
 		
-		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvolnìno a pak stisknuto
+		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvolnï¿½no a pak stisknuto
 			minule_stisknuto = stisknuto;
 			
-			switch(stisknuto) {			// Switcher pro stisk					//  program bude ukládat jednotlivé èíslice
+			switch(stisknuto) {			// Switcher pro stisk					//  program bude uklï¿½dat jednotlivï¿½ ï¿½ï¿½slice
 				case 0 :
 					click(stisknuto);
 					break;
@@ -101,36 +132,11 @@ void process_keypad(void){
 					for(i = 0; i < (sizeof(entry)-1); i++){
 						entry[i] = 10;
 					}
-					/*
-					entry[0] = 10;
-					entry[1] = 10;
-					entry[2] = 10;
-					entry[3] = 10;*/
 					pointer = 0;
 					lcd_clear();
 					break;
 				case 11 : //  #
-					lcd_gotoxy(0,1);
-					/*
-					sprintf(text,"%u,%u,%u,%u",	(uint16_t)entry[0],
-																			(uint16_t)entry[1],
-																			(uint16_t)entry[2],
-																			(uint16_t)entry[3]);
-					*/
-					
-					for(i = 0; i < (sizeof(entry)-1); i++){
-						if (entry[i] != heslo[i]){
-							pravda = 0;
-						}
-					}
-					
-					if(pravda){
-						sprintf(text,"eallowed");
-					}
-					else{
-						sprintf(text,"denied");
-					}
-					lcd_puts(text);
+					kontrola();
 					break;
 			}
 			
@@ -149,11 +155,43 @@ void click(uint8_t number){
 
 
 void kontrola(void){
+	uint8_t pravda = 1;
+	uint8_t i;
+	char text[32];
+	lcd_gotoxy(0,1);
 	
+	if(status / 10 == 1){
+		for(i = 0; i < (sizeof(entry)-1); i++){
+			if (entry[i] != heslo[i]){
+				pravda = 0;
+			}
+		}
+	} else {
+		for(i = 0; i < (sizeof(entry)-1); i++){
+			if (entry[i] != security_pass[i]){
+				pravda = 0;
+			}
+		}
+	}
+
+	if(pravda){
+		sprintf(text,"allowed");
+		//status = UNLOCKED;
+		attemp = 1;
+	}
+	else{
+		sprintf(text,"denied");
+		attemp ++;
+	}
+	lcd_puts(text);
+
+	if (attemp > max_attemps){
+		status = UNLOCKED_B;
+	}
 }
 
 //---------------------------------------------------------- Void
-// pod tímto komentáøem nic nemìòte 
+// pod tï¿½mto komentï¿½ï¿½em nic nemï¿½ï¿½te 
 #ifdef USE_FULL_ASSERT
 
 /**
