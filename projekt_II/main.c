@@ -17,12 +17,14 @@
 void init(void);
 void process_keypad(void);
 void kontrola(void);
+void click(uint8_t);
 
 //																													Promìnné
 uint8_t status = LOCKED;
-uint8_t heslo[5] = {7, 5, 1, 1, 9};
+uint8_t heslo[5] = {7, 5, 1, 1};
 uint8_t entry[5] = {10, 10, 10, 10};
 uint8_t pointer = 0;
+
 
 
 //---------------------------------------------------------- Hlavní funkce
@@ -52,8 +54,10 @@ void process_keypad(void){
 	static uint8_t minule_stisknuto=0xFF;	// poslední stav klávesnice (zde "volno")
 	static uint16_t last_time=0; 					// poslední èas kontroly stisku
 	uint8_t stisknuto;										// aktuálnì stisknutáklávesnice
-	char x;
-	//lcd_putchar(x);
+	char text[32];
+	uint8_t i;
+	uint8_t pravda = 1;
+	
 
 	if(milis()-last_time > 20){ // každých 20 ms ...
 		last_time = milis();
@@ -62,41 +66,87 @@ void process_keypad(void){
 		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvolnìno a pak stisknuto
 			minule_stisknuto = stisknuto;
 			
-			
-			
-			
 			switch(stisknuto) {			// Switcher pro stisk					//  program bude ukládat jednotlivé èíslice
 				case 0 :
+					click(stisknuto);
 					break;
 				case 1 :
+					click(stisknuto);
 					break;
 				case 2 :
+					click(stisknuto);
 					break;
 				case 3 :
+					click(stisknuto);
 					break;
 				case 4 :
+					click(stisknuto);
 					break;
 				case 5 :
+					click(stisknuto);
 					break;
 				case 6 :
+					click(stisknuto);
 					break;
 				case 7 :
+					click(stisknuto);
 					break;
 				case 8 :
+					click(stisknuto);
 					break;
 				case 9 :
+					click(stisknuto);
 					break;
 				case 10 : //  *
+					for(i = 0; i < (sizeof(entry)-1); i++){
+						entry[i] = 10;
+					}
+					/*
+					entry[0] = 10;
+					entry[1] = 10;
+					entry[2] = 10;
+					entry[3] = 10;*/
+					pointer = 0;
+					lcd_clear();
 					break;
 				case 11 : //  #
-					lcd_gotoxy(0,0);
+					lcd_gotoxy(0,1);
+					/*
+					sprintf(text,"%u,%u,%u,%u",	(uint16_t)entry[0],
+																			(uint16_t)entry[1],
+																			(uint16_t)entry[2],
+																			(uint16_t)entry[3]);
+					*/
 					
+					for(i = 0; i < (sizeof(entry)-1); i++){
+						if (entry[i] != heslo[i]){
+							pravda = 0;
+						}
+					}
+					
+					if(pravda){
+						sprintf(text,"eallowed");
+					}
+					else{
+						sprintf(text,"denied");
+					}
+					lcd_puts(text);
 					break;
 			}
+			
 		}
 		if(stisknuto == 0xFF){minule_stisknuto=0xFF;}
 	}
 }
+void click(uint8_t number){
+	lcd_gotoxy(pointer,0);
+	if(pointer < sizeof(entry)-1){
+		lcd_putchar('*');
+		entry[pointer] = number;
+		pointer ++;
+	}
+}
+
 
 void kontrola(void){
 	
