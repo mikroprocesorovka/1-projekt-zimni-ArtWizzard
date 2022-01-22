@@ -425,11 +425,6 @@ Next=Root.Source Files.main.c
 [Root.Source Files.main.c]
 ElemType=File
 PathName=main.c
-Next=Root.Source Files.stm8_interrupt_vector.c
-
-[Root.Source Files.stm8_interrupt_vector.c]
-ElemType=File
-PathName=stm8_interrupt_vector.c
 
 [Root.Include Files]
 ElemType=Folder
