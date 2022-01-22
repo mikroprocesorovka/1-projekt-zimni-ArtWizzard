@@ -3,15 +3,27 @@
 #include "milis.h"
 #include "keypad.h"
 #include "stm8_hd44780.h"
+#include "stdio.h"
+
 //#include "swspi.h"
 
 //																													deklrace
+#define LOCKED			10
+#define UNLOCKED 		20
+#define LOCKED_B		11
+#define UNLOCKED_B	21
 
 //																													funkce
 void init(void);
 void process_keypad(void);
+void kontrola(void);
 
 //																													Promìnné
+uint8_t status = LOCKED;
+uint8_t heslo[5] = {7, 5, 1, 1, 9};
+uint8_t entry[5] = {10, 10, 10, 10};
+uint8_t pointer = 0;
+
 
 //---------------------------------------------------------- Hlavní funkce
 void main(void){
@@ -31,16 +43,17 @@ void init(void){
 	
 	init_milis();						// Dekralace vnitøního èasu v STM 
 	keypad_init();					// Deklarace nastavení pinù na klávesnici
-	lcd_init();
+	lcd_init();							// Nastavení LDC displeje
 	
-	GPIO_Init(GPIOC,GPIO_PIN_5,GPIO_MODE_OUT_PP_LOW_SLOW);
+	//GPIO_Init(GPIOC,GPIO_PIN_5,GPIO_MODE_OUT_PP_LOW_SLOW);
 }
 //------------------------- Funkce pro stisk klávesy
 void process_keypad(void){
 	static uint8_t minule_stisknuto=0xFF;	// poslední stav klávesnice (zde "volno")
 	static uint16_t last_time=0; 					// poslední èas kontroly stisku
 	uint8_t stisknuto;										// aktuálnì stisknutáklávesnice
-	char x = '*';
+	char x;
+	//lcd_putchar(x);
 
 	if(milis()-last_time > 20){ // každých 20 ms ...
 		last_time = milis();
@@ -49,54 +62,45 @@ void process_keypad(void){
 		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvolnìno a pak stisknuto
 			minule_stisknuto = stisknuto;
 			
+			
+			
+			
 			switch(stisknuto) {			// Switcher pro stisk					//  program bude ukládat jednotlivé èíslice
 				case 0 :
-					lcd_gotoxy(0,1);
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
-					lcd_putchar(x);
 					break;
 				case 1 :
-					lcd_gotoxy(0,0);
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
-					lcd_putchar(x);
 					break;
 				case 2 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 3 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 4 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 5 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 6 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 7 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 8 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 9 :
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 10 : //  *
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
 					break;
 				case 11 : //  #
-					GPIO_WriteReverse(GPIOC,GPIO_PIN_5);
-					break;
+					lcd_gotoxy(0,0);
 					
+					break;
 			}
 		}
 		if(stisknuto == 0xFF){minule_stisknuto=0xFF;}
 	}
 }
 
+void kontrola(void){
+	
+}
 
 //---------------------------------------------------------- Void
 // pod tímto komentáøem nic nemìòte 
