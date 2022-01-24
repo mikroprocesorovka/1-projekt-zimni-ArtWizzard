@@ -12,14 +12,18 @@
 #define UNLOCKED 		12
 #define LOCKED_B		21
 #define UNLOCKED_B		22
+#define TIME_DELAY		1000 // 1 s
 
-#define COLOR_PORT		GPIOC
-#define R_HIGH			GPIO_WriteHigh(GPIOC,GPIO_PIN_1)
-#define R_LOW			GPIO_WriteLow(GPIOC,GPIO_PIN_1)
-#define	G_HIGH			GPIO_WriteHigh(GPIOC,GPIO_PIN_2)
-#define G_LOW			GPIO_WriteLow(GPIOC,GPIO_PIN_2)
-#define B_HIGH			GPIO_WriteHigh(GPIOC,GPIO_PIN_3)
-#define B_LOW 			GPIO_WriteLow(GPIOC,GPIO_PIN_3)
+#define CHANGE_POSITION_TIME 50 // ka�d�ch 50 ms zm�na
+#define DEFAULT_PULSE 10
+
+#define C_P				GPIOC
+//#define R_HIGH			GPIO_WriteHigh(C_P,GPIO_PIN_1)
+//#define R_LOW			GPIO_WriteLow(C_P,GPIO_PIN_1)
+#define	G_HIGH			GPIO_WriteHigh(C_P,GPIO_PIN_2)
+#define G_LOW			GPIO_WriteLow(C_P,GPIO_PIN_2)
+#define B_HIGH			GPIO_WriteHigh(C_P,GPIO_PIN_3)
+#define B_LOW 			GPIO_WriteLow(C_P,GPIO_PIN_3)
 
 //																													funkce
 void init(void);
@@ -27,6 +31,8 @@ void process_keypad(void);
 void kontrola(void);
 void click(uint8_t);
 void RGB_manager(void);
+void init_pwm(void); 
+void process_pwm_change(void);
 
 //																													Prom�nn�
 uint8_t status = LOCKED;
@@ -46,6 +52,7 @@ void main(void){
   while (1){
 		process_keypad();			// Aktualizuje stisk kl�vesy
 		RGB_manager();				// Signalizace na RGB diodě
+		
 	}
 }
 
@@ -55,32 +62,47 @@ void main(void){
 //------------------------- Inicializace
 void init(void){
 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);	 					// 16MHz z intern�ho RC oscil�toru
-	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);				// Porty pro RGB diodu
-	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);
-	GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_HIGH_SLOW);
+	//GPIO_Init(GPIOC,GPIO_PIN_1,GPIO_MODE_OUT_PP_LOW_SLOW);				// Porty pro RGB diodu
+	GPIO_Init(GPIOC,GPIO_PIN_2,GPIO_MODE_OUT_PP_LOW_SLOW);
+	GPIO_Init(GPIOC,GPIO_PIN_3,GPIO_MODE_OUT_PP_LOW_SLOW);
 
 	
 	init_milis();						// Dekralace vnit�n�ho �asu v STM 
 	keypad_init();					// Deklarace nastaven� pin� na kl�vesnici
 	lcd_init();							// Nastaven� LDC displeje
+	init_pwm(); 						// nastavit a spustit timer
 	
 	//GPIO_Init(GPIOC,GPIO_PIN_5,GPIO_MODE_OUT_PP_LOW_SLOW);
 }
 //------------------------- Funkce RGB
 void RGB_manager(void){
+	//R_LOW;
+	G_LOW;
+	B_LOW;
 	if (status == UNLOCKED){
-		R_LOW;
 		G_HIGH;
-		B_LOW;
 	}else if (status == LOCKED){
-		R_LOW;
-		G_LOW;
 		B_HIGH;
-	}else{
-		R_HIGH;
-		G_LOW;
-		B_LOW;
+	}else if (status == LOCKED_B || status == UNLOCKED_B){
+		//R_HIGH;
+		process_pwm_change(); //LED na pinu D4
 	}
+}
+
+//------------------------- PWM RED
+void process_pwm_change(void){
+	static uint16_t pulse = DEFAULT_PULSE; 
+	static uint16_t last_time = 0;  
+	static int8_t zmena = 50;
+
+  if(milis() - last_time >= CHANGE_POSITION_TIME){
+		last_time = milis();
+		pulse = pulse + zmena;
+		if(pulse>499 || pulse<50){
+			zmena = zmena*(-1);
+		} 	
+		TIM2_SetCompare1(pulse);
+  }
 }
 
 //------------------------- Funkce pro stisk kl�vesy
@@ -176,7 +198,7 @@ void kontrola(void){
 
 	if(pravda){
 		sprintf(text,"allowed");
-		//status = UNLOCKED;
+		status = UNLOCKED;
 		attemp = 1;
 	}
 	else{
@@ -188,6 +210,25 @@ void kontrola(void){
 	if (attemp > max_attemps){
 		status = UNLOCKED_B;
 	}
+}
+
+void init_pwm(void){
+// nastav�me piny PD4 jako v�stup 
+GPIO_Init(GPIOD, GPIO_PIN_4, GPIO_MODE_OUT_PP_LOW_FAST);
+// Inicializujeme �asovou z�kladnu s clockem do �sova�e na 1MHz (T=1us), P�ete�en� = 1 000 000 / 1000 = 1 ms
+TIM2_TimeBaseInit(TIM2_PRESCALER_16,1000-1);
+
+TIM2_OC1Init( 	// inicializujeme kan�l 1 (TM2_CH1)
+	TIM2_OCMODE_PWM1, 				// re�im PWM1
+	TIM2_OUTPUTSTATE_ENABLE,	// V�stup povolen (TIMer ovl�d� pin)
+	DEFAULT_PULSE,		// v�choz� hodnota ���ky pulzu je 1.5ms
+	TIM2_OCPOLARITY_HIGH			// Z�t� rozsv�c�me hodnotou HIGH 
+	);
+	
+// aktivuji na pou�it�ch kan�lech preload (zaji��uje zm�nu st��dy bez ne��douc�ch efekt�)
+TIM2_OC1PreloadConfig(ENABLE);
+// spust�me timer	
+TIM2_Cmd(ENABLE);
 }
 
 //---------------------------------------------------------- Void
