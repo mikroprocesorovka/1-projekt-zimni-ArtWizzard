@@ -28,530 +28,602 @@
   39  0011 03            	dc.b	3
   40  0012               _attemp:
   41  0012 01            	dc.b	1
-  73                     ; 49 void main(void){
-  75                     	switch	.text
-  76  0000               _main:
-  80                     ; 50 	init();
-  82  0000 ad07          	call	_init
-  84  0002               L12:
-  85                     ; 53 		process_keypad();			// Aktualizuje stisk kl�vesy
-  87  0002 cd00af        	call	_process_keypad
-  89                     ; 54 		RGB_manager();				// Signalizace na RGB diodě
-  91  0005 ad29          	call	_RGB_manager
-  94  0007 20f9          	jra	L12
- 123                     ; 63 void init(void){
- 124                     	switch	.text
- 125  0009               _init:
- 129                     ; 64 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);	 					// 16MHz z intern�ho RC oscil�toru
- 131  0009 4f            	clr	a
- 132  000a cd0000        	call	_CLK_HSIPrescalerConfig
- 134                     ; 66 	GPIO_Init(GPIOC,GPIO_PIN_2,GPIO_MODE_OUT_PP_LOW_SLOW);
- 136  000d 4bc0          	push	#192
- 137  000f 4b04          	push	#4
- 138  0011 ae500a        	ldw	x,#20490
- 139  0014 cd0000        	call	_GPIO_Init
- 141  0017 85            	popw	x
- 142                     ; 67 	GPIO_Init(GPIOC,GPIO_PIN_3,GPIO_MODE_OUT_PP_LOW_SLOW);
- 144  0018 4bc0          	push	#192
- 145  001a 4b08          	push	#8
- 146  001c ae500a        	ldw	x,#20490
- 147  001f cd0000        	call	_GPIO_Init
- 149  0022 85            	popw	x
- 150                     ; 70 	init_milis();						// Dekralace vnit�n�ho �asu v STM 
- 152  0023 cd0000        	call	_init_milis
- 154                     ; 71 	keypad_init();					// Deklarace nastaven� pin� na kl�vesnici
- 156  0026 cd0000        	call	_keypad_init
- 158                     ; 72 	lcd_init();							// Nastaven� LDC displeje
- 160  0029 cd0000        	call	_lcd_init
- 162                     ; 73 	init_pwm(); 						// nastavit a spustit timer
- 164  002c cd0202        	call	_init_pwm
- 166                     ; 76 }
- 169  002f 81            	ret
- 196                     ; 78 void RGB_manager(void){
- 197                     	switch	.text
- 198  0030               _RGB_manager:
- 202                     ; 80 	G_LOW;
- 204  0030 4b04          	push	#4
- 205  0032 ae500a        	ldw	x,#20490
- 206  0035 cd0000        	call	_GPIO_WriteLow
- 208  0038 84            	pop	a
- 209                     ; 81 	B_LOW;
- 211  0039 4b08          	push	#8
- 212  003b ae500a        	ldw	x,#20490
- 213  003e cd0000        	call	_GPIO_WriteLow
- 215  0041 84            	pop	a
- 216                     ; 82 	if (status == UNLOCKED){
- 218  0042 b600          	ld	a,_status
- 219  0044 a10c          	cp	a,#12
- 220  0046 260b          	jrne	L54
- 221                     ; 83 		G_HIGH;
- 223  0048 4b04          	push	#4
- 224  004a ae500a        	ldw	x,#20490
- 225  004d cd0000        	call	_GPIO_WriteHigh
- 227  0050 84            	pop	a
- 229  0051 201f          	jra	L74
- 230  0053               L54:
- 231                     ; 84 	}else if (status == LOCKED){
- 233  0053 b600          	ld	a,_status
- 234  0055 a10b          	cp	a,#11
- 235  0057 260b          	jrne	L15
- 236                     ; 85 		B_HIGH;
- 238  0059 4b08          	push	#8
- 239  005b ae500a        	ldw	x,#20490
- 240  005e cd0000        	call	_GPIO_WriteHigh
- 242  0061 84            	pop	a
- 244  0062 200e          	jra	L74
- 245  0064               L15:
- 246                     ; 86 	}else if (status == LOCKED_B || status == UNLOCKED_B){
- 248  0064 b600          	ld	a,_status
- 249  0066 a115          	cp	a,#21
- 250  0068 2706          	jreq	L75
- 252  006a b600          	ld	a,_status
- 253  006c a116          	cp	a,#22
- 254  006e 2602          	jrne	L74
- 255  0070               L75:
- 256                     ; 88 		process_pwm_change(); //LED na pinu D4
- 258  0070 ad01          	call	_process_pwm_change
- 260  0072               L74:
- 261                     ; 90 }
- 264  0072 81            	ret
- 267                     	bsct
- 268  0013               L16_pulse:
- 269  0013 000a          	dc.w	10
- 270  0015               L36_last_time:
- 271  0015 0000          	dc.w	0
- 272  0017               L56_zmena:
- 273  0017 32            	dc.b	50
- 325                     ; 93 void process_pwm_change(void){
- 326                     	switch	.text
- 327  0073               _process_pwm_change:
- 329  0073 89            	pushw	x
- 330       00000002      OFST:	set	2
- 333                     ; 98   if(milis() - last_time >= CHANGE_POSITION_TIME){
- 335  0074 cd0000        	call	_milis
- 337  0077 72b00015      	subw	x,L36_last_time
- 338  007b a30032        	cpw	x,#50
- 339  007e 252d          	jrult	L511
- 340                     ; 99 		last_time = milis();
- 342  0080 cd0000        	call	_milis
- 344  0083 bf15          	ldw	L36_last_time,x
- 345                     ; 100 		pulse = pulse + zmena;
- 347  0085 5f            	clrw	x
- 348  0086 b617          	ld	a,L56_zmena
- 349  0088 2a01          	jrpl	L41
- 350  008a 53            	cplw	x
- 351  008b               L41:
- 352  008b 97            	ld	xl,a
- 353  008c 1f01          	ldw	(OFST-1,sp),x
- 355  008e be13          	ldw	x,L16_pulse
- 356  0090 72fb01        	addw	x,(OFST-1,sp)
- 357  0093 bf13          	ldw	L16_pulse,x
- 358                     ; 101 		if(pulse>499 || pulse<50){
- 360  0095 be13          	ldw	x,L16_pulse
- 361  0097 a301f4        	cpw	x,#500
- 362  009a 2407          	jruge	L121
- 364  009c be13          	ldw	x,L16_pulse
- 365  009e a30032        	cpw	x,#50
- 366  00a1 2405          	jruge	L711
- 367  00a3               L121:
- 368                     ; 102 			zmena = zmena*(-1);
- 370  00a3 b617          	ld	a,L56_zmena
- 371  00a5 40            	neg	a
- 372  00a6 b717          	ld	L56_zmena,a
- 373  00a8               L711:
- 374                     ; 104 		TIM2_SetCompare1(pulse);
- 376  00a8 be13          	ldw	x,L16_pulse
- 377  00aa cd0000        	call	_TIM2_SetCompare1
- 379  00ad               L511:
- 380                     ; 106 }
- 383  00ad 85            	popw	x
- 384  00ae 81            	ret
- 387                     	bsct
- 388  0018               L321_minule_stisknuto:
- 389  0018 ff            	dc.b	255
- 390  0019               L521_last_time:
- 391  0019 0000          	dc.w	0
- 457                     .const:	section	.text
- 458  0000               L22:
- 459  0000 00ec          	dc.w	L721
- 460  0002 00f2          	dc.w	L131
- 461  0004 00f8          	dc.w	L331
- 462  0006 00fe          	dc.w	L531
- 463  0008 0104          	dc.w	L731
- 464  000a 010a          	dc.w	L141
- 465  000c 0110          	dc.w	L341
- 466  000e 0116          	dc.w	L541
- 467  0010 011c          	dc.w	L741
- 468  0012 0122          	dc.w	L151
- 469  0014 0128          	dc.w	L351
- 470  0016 0143          	dc.w	L551
- 471                     ; 109 void process_keypad(void){
- 472                     	switch	.text
- 473  00af               _process_keypad:
- 475  00af 89            	pushw	x
- 476       00000002      OFST:	set	2
- 479                     ; 115 	if(milis()-last_time > 20){ // ka�d�ch 20 ms ...
- 481  00b0 cd0000        	call	_milis
- 483  00b3 72b00019      	subw	x,L521_last_time
- 484  00b7 a30015        	cpw	x,#21
- 485  00ba 2403          	jruge	L42
- 486  00bc cc014f        	jp	L112
- 487  00bf               L42:
- 488                     ; 116 		last_time = milis();
- 490  00bf cd0000        	call	_milis
- 492  00c2 bf19          	ldw	L521_last_time,x
- 493                     ; 117 		stisknuto = keypad_scan(); // ... skenujeme kl�vesnici
- 495  00c4 cd0000        	call	_keypad_scan
- 497  00c7 6b02          	ld	(OFST+0,sp),a
- 499                     ; 119 		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvoln�no a pak stisknuto
- 501  00c9 b618          	ld	a,L321_minule_stisknuto
- 502  00cb a1ff          	cp	a,#255
- 503  00cd 2702          	jreq	L62
- 504  00cf 2074          	jp	L312
- 505  00d1               L62:
- 507  00d1 7b02          	ld	a,(OFST+0,sp)
- 508  00d3 a1ff          	cp	a,#255
- 509  00d5 2602          	jrne	L03
- 510  00d7 206c          	jp	L312
- 511  00d9               L03:
- 512                     ; 120 			minule_stisknuto = stisknuto;
- 514  00d9 7b02          	ld	a,(OFST+0,sp)
- 515  00db b718          	ld	L321_minule_stisknuto,a
- 516                     ; 122 			switch(stisknuto) {			// Switcher pro stisk					//  program bude ukl�dat jednotliv� ��slice
- 518  00dd 7b02          	ld	a,(OFST+0,sp)
- 520                     ; 162 					break;
- 521  00df a10c          	cp	a,#12
- 522  00e1 2407          	jruge	L02
- 523  00e3 5f            	clrw	x
- 524  00e4 97            	ld	xl,a
- 525  00e5 58            	sllw	x
- 526  00e6 de0000        	ldw	x,(L22,x)
- 527  00e9 fc            	jp	(x)
- 528  00ea               L02:
- 529  00ea 2059          	jra	L312
- 530  00ec               L721:
- 531                     ; 123 				case 0 :
- 531                     ; 124 					click(stisknuto);
- 533  00ec 7b02          	ld	a,(OFST+0,sp)
- 534  00ee ad61          	call	_click
- 536                     ; 125 					break;
- 538  00f0 2053          	jra	L312
- 539  00f2               L131:
- 540                     ; 126 				case 1 :
- 540                     ; 127 					click(stisknuto);
- 542  00f2 7b02          	ld	a,(OFST+0,sp)
- 543  00f4 ad5b          	call	_click
- 545                     ; 128 					break;
- 547  00f6 204d          	jra	L312
- 548  00f8               L331:
- 549                     ; 129 				case 2 :
- 549                     ; 130 					click(stisknuto);
- 551  00f8 7b02          	ld	a,(OFST+0,sp)
- 552  00fa ad55          	call	_click
- 554                     ; 131 					break;
- 556  00fc 2047          	jra	L312
- 557  00fe               L531:
- 558                     ; 132 				case 3 :
- 558                     ; 133 					click(stisknuto);
- 560  00fe 7b02          	ld	a,(OFST+0,sp)
- 561  0100 ad4f          	call	_click
- 563                     ; 134 					break;
- 565  0102 2041          	jra	L312
- 566  0104               L731:
- 567                     ; 135 				case 4 :
- 567                     ; 136 					click(stisknuto);
- 569  0104 7b02          	ld	a,(OFST+0,sp)
- 570  0106 ad49          	call	_click
- 572                     ; 137 					break;
- 574  0108 203b          	jra	L312
- 575  010a               L141:
- 576                     ; 138 				case 5 :
- 576                     ; 139 					click(stisknuto);
- 578  010a 7b02          	ld	a,(OFST+0,sp)
- 579  010c ad43          	call	_click
- 581                     ; 140 					break;
- 583  010e 2035          	jra	L312
- 584  0110               L341:
- 585                     ; 141 				case 6 :
- 585                     ; 142 					click(stisknuto);
- 587  0110 7b02          	ld	a,(OFST+0,sp)
- 588  0112 ad3d          	call	_click
- 590                     ; 143 					break;
- 592  0114 202f          	jra	L312
- 593  0116               L541:
- 594                     ; 144 				case 7 :
- 594                     ; 145 					click(stisknuto);
- 596  0116 7b02          	ld	a,(OFST+0,sp)
- 597  0118 ad37          	call	_click
- 599                     ; 146 					break;
- 601  011a 2029          	jra	L312
- 602  011c               L741:
- 603                     ; 147 				case 8 :
- 603                     ; 148 					click(stisknuto);
- 605  011c 7b02          	ld	a,(OFST+0,sp)
- 606  011e ad31          	call	_click
- 608                     ; 149 					break;
- 610  0120 2023          	jra	L312
- 611  0122               L151:
- 612                     ; 150 				case 9 :
- 612                     ; 151 					click(stisknuto);
- 614  0122 7b02          	ld	a,(OFST+0,sp)
- 615  0124 ad2b          	call	_click
- 617                     ; 152 					break;
- 619  0126 201d          	jra	L312
- 620  0128               L351:
- 621                     ; 153 				case 10 : //  *
- 621                     ; 154 					for(i = 0; i < (sizeof(entry)-1); i++){
- 623  0128 0f01          	clr	(OFST-1,sp)
- 625  012a               L122:
- 626                     ; 155 						entry[i] = 10;
- 628  012a 7b01          	ld	a,(OFST-1,sp)
- 629  012c 5f            	clrw	x
- 630  012d 97            	ld	xl,a
- 631  012e a60a          	ld	a,#10
- 632  0130 e70b          	ld	(_entry,x),a
- 633                     ; 154 					for(i = 0; i < (sizeof(entry)-1); i++){
- 635  0132 0c01          	inc	(OFST-1,sp)
- 639  0134 7b01          	ld	a,(OFST-1,sp)
- 640  0136 a104          	cp	a,#4
- 641  0138 25f0          	jrult	L122
- 642                     ; 157 					pointer = 0;
- 644  013a 3f10          	clr	_pointer
- 645                     ; 158 					lcd_clear();
- 647  013c a601          	ld	a,#1
- 648  013e cd0000        	call	_lcd_command
- 650                     ; 159 					break;
- 652  0141 2002          	jra	L312
- 653  0143               L551:
- 654                     ; 160 				case 11 : //  #
- 654                     ; 161 					kontrola();
- 656  0143 ad2b          	call	_kontrola
- 658                     ; 162 					break;
- 660  0145               L712:
- 661  0145               L312:
- 662                     ; 166 		if(stisknuto == 0xFF){minule_stisknuto=0xFF;}
- 664  0145 7b02          	ld	a,(OFST+0,sp)
- 665  0147 a1ff          	cp	a,#255
- 666  0149 2604          	jrne	L112
- 669  014b 35ff0018      	mov	L321_minule_stisknuto,#255
- 670  014f               L112:
- 671                     ; 168 }
- 674  014f 85            	popw	x
- 675  0150 81            	ret
- 713                     ; 169 void click(uint8_t number){
- 714                     	switch	.text
- 715  0151               _click:
- 717  0151 88            	push	a
- 718       00000000      OFST:	set	0
- 721                     ; 170 	lcd_gotoxy(pointer,0);
- 723  0152 b610          	ld	a,_pointer
- 724  0154 5f            	clrw	x
- 725  0155 95            	ld	xh,a
- 726  0156 cd0000        	call	_lcd_gotoxy
- 728                     ; 171 	if(pointer < sizeof(entry)-1){
- 730  0159 b610          	ld	a,_pointer
- 731  015b a104          	cp	a,#4
- 732  015d 240f          	jruge	L742
- 733                     ; 172 		lcd_putchar('*');
- 735  015f a62a          	ld	a,#42
- 736  0161 cd0000        	call	_lcd_data
- 738                     ; 173 		entry[pointer] = number;
- 740  0164 b610          	ld	a,_pointer
- 741  0166 5f            	clrw	x
- 742  0167 97            	ld	xl,a
- 743  0168 7b01          	ld	a,(OFST+1,sp)
- 744  016a e70b          	ld	(_entry,x),a
- 745                     ; 174 		pointer ++;
- 747  016c 3c10          	inc	_pointer
- 748  016e               L742:
- 749                     ; 176 }
- 752  016e 84            	pop	a
- 753  016f 81            	ret
- 815                     ; 179 void kontrola(void){
- 816                     	switch	.text
- 817  0170               _kontrola:
- 819  0170 5222          	subw	sp,#34
- 820       00000022      OFST:	set	34
- 823                     ; 180 	uint8_t pravda = 1;
- 825  0172 a601          	ld	a,#1
- 826  0174 6b21          	ld	(OFST-1,sp),a
- 828                     ; 183 	lcd_gotoxy(0,1);
- 830  0176 ae0001        	ldw	x,#1
- 831  0179 cd0000        	call	_lcd_gotoxy
- 833                     ; 185 	if(status / 10 == 1){
- 835  017c b600          	ld	a,_status
- 836  017e 5f            	clrw	x
- 837  017f 97            	ld	xl,a
- 838  0180 a60a          	ld	a,#10
- 839  0182 cd0000        	call	c_sdivx
- 841  0185 a30001        	cpw	x,#1
- 842  0188 261f          	jrne	L772
- 843                     ; 186 		for(i = 0; i < (sizeof(entry)-1); i++){
- 845  018a 0f22          	clr	(OFST+0,sp)
- 847  018c               L103:
- 848                     ; 187 			if (entry[i] != heslo[i]){
- 850  018c 7b22          	ld	a,(OFST+0,sp)
- 851  018e 5f            	clrw	x
- 852  018f 97            	ld	xl,a
- 853  0190 7b22          	ld	a,(OFST+0,sp)
- 854  0192 905f          	clrw	y
- 855  0194 9097          	ld	yl,a
- 856  0196 90e60b        	ld	a,(_entry,y)
- 857  0199 e101          	cp	a,(_heslo,x)
- 858  019b 2702          	jreq	L703
- 859                     ; 188 				pravda = 0;
- 861  019d 0f21          	clr	(OFST-1,sp)
- 863  019f               L703:
- 864                     ; 186 		for(i = 0; i < (sizeof(entry)-1); i++){
- 866  019f 0c22          	inc	(OFST+0,sp)
- 870  01a1 7b22          	ld	a,(OFST+0,sp)
- 871  01a3 a104          	cp	a,#4
- 872  01a5 25e5          	jrult	L103
- 874  01a7 201d          	jra	L113
- 875  01a9               L772:
- 876                     ; 192 		for(i = 0; i < (sizeof(entry)-1); i++){
- 878  01a9 0f22          	clr	(OFST+0,sp)
- 880  01ab               L313:
- 881                     ; 193 			if (entry[i] != security_pass[i]){
- 883  01ab 7b22          	ld	a,(OFST+0,sp)
- 884  01ad 5f            	clrw	x
- 885  01ae 97            	ld	xl,a
- 886  01af 7b22          	ld	a,(OFST+0,sp)
- 887  01b1 905f          	clrw	y
- 888  01b3 9097          	ld	yl,a
- 889  01b5 90e60b        	ld	a,(_entry,y)
- 890  01b8 e106          	cp	a,(_security_pass,x)
- 891  01ba 2702          	jreq	L123
- 892                     ; 194 				pravda = 0;
- 894  01bc 0f21          	clr	(OFST-1,sp)
- 896  01be               L123:
- 897                     ; 192 		for(i = 0; i < (sizeof(entry)-1); i++){
- 899  01be 0c22          	inc	(OFST+0,sp)
- 903  01c0 7b22          	ld	a,(OFST+0,sp)
- 904  01c2 a104          	cp	a,#4
- 905  01c4 25e5          	jrult	L313
- 906  01c6               L113:
- 907                     ; 199 	if(pravda){
- 909  01c6 0d21          	tnz	(OFST-1,sp)
- 910  01c8 2716          	jreq	L323
- 911                     ; 200 		sprintf(text,"allowed");
- 913  01ca ae001f        	ldw	x,#L523
- 914  01cd 89            	pushw	x
- 915  01ce 96            	ldw	x,sp
- 916  01cf 1c0003        	addw	x,#OFST-31
- 917  01d2 cd0000        	call	_sprintf
- 919  01d5 85            	popw	x
- 920                     ; 201 		status = UNLOCKED;
- 922  01d6 350c0000      	mov	_status,#12
- 923                     ; 202 		attemp = 1;
- 925  01da 35010012      	mov	_attemp,#1
- 927  01de 200e          	jra	L723
- 928  01e0               L323:
- 929                     ; 205 		sprintf(text,"denied");
- 931  01e0 ae0018        	ldw	x,#L133
- 932  01e3 89            	pushw	x
- 933  01e4 96            	ldw	x,sp
- 934  01e5 1c0003        	addw	x,#OFST-31
- 935  01e8 cd0000        	call	_sprintf
- 937  01eb 85            	popw	x
- 938                     ; 206 		attemp ++;
- 940  01ec 3c12          	inc	_attemp
- 941  01ee               L723:
- 942                     ; 208 	lcd_puts(text);
- 944  01ee 96            	ldw	x,sp
- 945  01ef 1c0001        	addw	x,#OFST-33
- 946  01f2 cd0000        	call	_lcd_puts
- 948                     ; 210 	if (attemp > max_attemps){
- 950  01f5 b612          	ld	a,_attemp
- 951  01f7 b111          	cp	a,_max_attemps
- 952  01f9 2304          	jrule	L333
- 953                     ; 211 		status = UNLOCKED_B;
- 955  01fb 35160000      	mov	_status,#22
- 956  01ff               L333:
- 957                     ; 213 }
- 960  01ff 5b22          	addw	sp,#34
- 961  0201 81            	ret
- 989                     ; 215 void init_pwm(void){
- 990                     	switch	.text
- 991  0202               _init_pwm:
- 995                     ; 217 GPIO_Init(GPIOD, GPIO_PIN_4, GPIO_MODE_OUT_PP_LOW_FAST);
- 997  0202 4be0          	push	#224
- 998  0204 4b10          	push	#16
- 999  0206 ae500f        	ldw	x,#20495
-1000  0209 cd0000        	call	_GPIO_Init
-1002  020c 85            	popw	x
-1003                     ; 219 TIM2_TimeBaseInit(TIM2_PRESCALER_16,1000-1);
-1005  020d ae03e7        	ldw	x,#999
-1006  0210 89            	pushw	x
-1007  0211 a604          	ld	a,#4
-1008  0213 cd0000        	call	_TIM2_TimeBaseInit
-1010  0216 85            	popw	x
-1011                     ; 221 TIM2_OC1Init( 	// inicializujeme kan�l 1 (TM2_CH1)
-1011                     ; 222 	TIM2_OCMODE_PWM1, 				// re�im PWM1
-1011                     ; 223 	TIM2_OUTPUTSTATE_ENABLE,	// V�stup povolen (TIMer ovl�d� pin)
-1011                     ; 224 	DEFAULT_PULSE,		// v�choz� hodnota ���ky pulzu je 1.5ms
-1011                     ; 225 	TIM2_OCPOLARITY_HIGH			// Z�t� rozsv�c�me hodnotou HIGH 
-1011                     ; 226 	);
-1013  0217 4b00          	push	#0
-1014  0219 ae000a        	ldw	x,#10
-1015  021c 89            	pushw	x
-1016  021d ae6011        	ldw	x,#24593
-1017  0220 cd0000        	call	_TIM2_OC1Init
-1019  0223 5b03          	addw	sp,#3
-1020                     ; 229 TIM2_OC1PreloadConfig(ENABLE);
-1022  0225 a601          	ld	a,#1
-1023  0227 cd0000        	call	_TIM2_OC1PreloadConfig
-1025                     ; 231 TIM2_Cmd(ENABLE);
-1027  022a a601          	ld	a,#1
-1028  022c cd0000        	call	_TIM2_Cmd
-1030                     ; 232 }
-1033  022f 81            	ret
-1068                     ; 245 void assert_failed(u8* file, u32 line)
-1068                     ; 246 { 
-1069                     	switch	.text
-1070  0230               _assert_failed:
-1074  0230               L363:
-1075  0230 20fe          	jra	L363
-1156                     	xdef	_main
-1157                     	xdef	_attemp
-1158                     	xdef	_max_attemps
-1159                     	xdef	_pointer
-1160                     	xdef	_entry
-1161                     	xdef	_security_pass
-1162                     	xdef	_heslo
-1163                     	xdef	_status
-1164                     	xdef	_process_pwm_change
-1165                     	xdef	_init_pwm
-1166                     	xdef	_RGB_manager
-1167                     	xdef	_click
-1168                     	xdef	_kontrola
-1169                     	xdef	_process_keypad
-1170                     	xdef	_init
-1171                     	xref	_sprintf
-1172                     	xref	_lcd_puts
-1173                     	xref	_lcd_gotoxy
-1174                     	xref	_lcd_init
-1175                     	xref	_lcd_data
-1176                     	xref	_lcd_command
-1177                     	xref	_keypad_scan
-1178                     	xref	_keypad_init
-1179                     	xref	_init_milis
-1180                     	xref	_milis
-1181                     	xdef	_assert_failed
-1182                     	xref	_TIM2_SetCompare1
-1183                     	xref	_TIM2_OC1PreloadConfig
-1184                     	xref	_TIM2_Cmd
-1185                     	xref	_TIM2_OC1Init
-1186                     	xref	_TIM2_TimeBaseInit
-1187                     	xref	_GPIO_WriteLow
-1188                     	xref	_GPIO_WriteHigh
-1189                     	xref	_GPIO_Init
-1190                     	xref	_CLK_HSIPrescalerConfig
-1191                     	switch	.const
-1192  0018               L133:
-1193  0018 64656e696564  	dc.b	"denied",0
-1194  001f               L523:
-1195  001f 616c6c6f7765  	dc.b	"allowed",0
-1196                     	xref.b	c_x
-1216                     	xref	c_sdivx
-1217                     	end
+  74                     ; 50 void main(void){
+  76                     	switch	.text
+  77  0000               _main:
+  81                     ; 51 	init();
+  83  0000 ad13          	call	_init
+  85  0002               L12:
+  86                     ; 54 		process_keypad();			// Aktualizuje stisk kl�vesy
+  88  0002 cd00ad        	call	_process_keypad
+  90                     ; 56 		if (status == UNLOCKED_B || status == LOCKED_B){
+  92  0005 b600          	ld	a,_status
+  93  0007 a116          	cp	a,#22
+  94  0009 2706          	jreq	L72
+  96  000b b600          	ld	a,_status
+  97  000d a115          	cp	a,#21
+  98  000f 26f1          	jrne	L12
+  99  0011               L72:
+ 100                     ; 57 			process_pwm_change(); //LED na pinu D4
+ 102  0011 ad5e          	call	_process_pwm_change
+ 104  0013 20ed          	jra	L12
+ 134                     ; 66 void init(void){
+ 135                     	switch	.text
+ 136  0015               _init:
+ 140                     ; 67 	CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);	 					// 16MHz z intern�ho RC oscil�toru
+ 142  0015 4f            	clr	a
+ 143  0016 cd0000        	call	_CLK_HSIPrescalerConfig
+ 145                     ; 69 	GPIO_Init(GPIOC,GPIO_PIN_2,GPIO_MODE_OUT_PP_LOW_SLOW);
+ 147  0019 4bc0          	push	#192
+ 148  001b 4b04          	push	#4
+ 149  001d ae500a        	ldw	x,#20490
+ 150  0020 cd0000        	call	_GPIO_Init
+ 152  0023 85            	popw	x
+ 153                     ; 70 	GPIO_Init(GPIOC,GPIO_PIN_3,GPIO_MODE_OUT_PP_LOW_SLOW);
+ 155  0024 4bc0          	push	#192
+ 156  0026 4b08          	push	#8
+ 157  0028 ae500a        	ldw	x,#20490
+ 158  002b cd0000        	call	_GPIO_Init
+ 160  002e 85            	popw	x
+ 161                     ; 73 	init_milis();						// Dekralace vnit�n�ho �asu v STM 
+ 163  002f cd0000        	call	_init_milis
+ 165                     ; 74 	keypad_init();					// Deklarace nastaven� pin� na kl�vesnici
+ 167  0032 cd0000        	call	_keypad_init
+ 169                     ; 75 	lcd_init();							// Nastaven� LDC displeje
+ 171  0035 cd0000        	call	_lcd_init
+ 173                     ; 76 	init_pwm(); 						// nastavit a spustit timer
+ 175  0038 cd0249        	call	_init_pwm
+ 177                     ; 77 	RGB_manager();					// Zobraz� prvn� re�im na RGB
+ 179  003b ad01          	call	_RGB_manager
+ 181                     ; 80 }
+ 184  003d 81            	ret
+ 210                     ; 82 void RGB_manager(void){
+ 211                     	switch	.text
+ 212  003e               _RGB_manager:
+ 216                     ; 84 	G_LOW;
+ 218  003e 4b04          	push	#4
+ 219  0040 ae500a        	ldw	x,#20490
+ 220  0043 cd0000        	call	_GPIO_WriteLow
+ 222  0046 84            	pop	a
+ 223                     ; 85 	B_LOW;
+ 225  0047 4b08          	push	#8
+ 226  0049 ae500a        	ldw	x,#20490
+ 227  004c cd0000        	call	_GPIO_WriteLow
+ 229  004f 84            	pop	a
+ 230                     ; 86 	if (status == UNLOCKED){
+ 232  0050 b600          	ld	a,_status
+ 233  0052 a10c          	cp	a,#12
+ 234  0054 260b          	jrne	L15
+ 235                     ; 87 		G_HIGH;
+ 237  0056 4b04          	push	#4
+ 238  0058 ae500a        	ldw	x,#20490
+ 239  005b cd0000        	call	_GPIO_WriteHigh
+ 241  005e 84            	pop	a
+ 243  005f 200f          	jra	L35
+ 244  0061               L15:
+ 245                     ; 88 	}else if (status == LOCKED){
+ 247  0061 b600          	ld	a,_status
+ 248  0063 a10b          	cp	a,#11
+ 249  0065 2609          	jrne	L35
+ 250                     ; 89 		B_HIGH;
+ 252  0067 4b08          	push	#8
+ 253  0069 ae500a        	ldw	x,#20490
+ 254  006c cd0000        	call	_GPIO_WriteHigh
+ 256  006f 84            	pop	a
+ 257  0070               L35:
+ 258                     ; 91 }
+ 261  0070 81            	ret
+ 264                     	bsct
+ 265  0013               L75_pulse:
+ 266  0013 000a          	dc.w	10
+ 267  0015               L16_last_time:
+ 268  0015 0000          	dc.w	0
+ 269  0017               L36_zmena:
+ 270  0017 32            	dc.b	50
+ 322                     ; 94 void process_pwm_change(void){
+ 323                     	switch	.text
+ 324  0071               _process_pwm_change:
+ 326  0071 89            	pushw	x
+ 327       00000002      OFST:	set	2
+ 330                     ; 99   if(milis() - last_time >= CHANGE_POSITION_TIME){
+ 332  0072 cd0000        	call	_milis
+ 334  0075 72b00015      	subw	x,L16_last_time
+ 335  0079 a30032        	cpw	x,#50
+ 336  007c 252d          	jrult	L311
+ 337                     ; 100 		last_time = milis();
+ 339  007e cd0000        	call	_milis
+ 341  0081 bf15          	ldw	L16_last_time,x
+ 342                     ; 101 		pulse = pulse + zmena;
+ 344  0083 5f            	clrw	x
+ 345  0084 b617          	ld	a,L36_zmena
+ 346  0086 2a01          	jrpl	L41
+ 347  0088 53            	cplw	x
+ 348  0089               L41:
+ 349  0089 97            	ld	xl,a
+ 350  008a 1f01          	ldw	(OFST-1,sp),x
+ 352  008c be13          	ldw	x,L75_pulse
+ 353  008e 72fb01        	addw	x,(OFST-1,sp)
+ 354  0091 bf13          	ldw	L75_pulse,x
+ 355                     ; 102 		if(pulse>499 || pulse<50){
+ 357  0093 be13          	ldw	x,L75_pulse
+ 358  0095 a301f4        	cpw	x,#500
+ 359  0098 2407          	jruge	L711
+ 361  009a be13          	ldw	x,L75_pulse
+ 362  009c a30032        	cpw	x,#50
+ 363  009f 2405          	jruge	L511
+ 364  00a1               L711:
+ 365                     ; 103 			zmena = zmena*(-1);
+ 367  00a1 b617          	ld	a,L36_zmena
+ 368  00a3 40            	neg	a
+ 369  00a4 b717          	ld	L36_zmena,a
+ 370  00a6               L511:
+ 371                     ; 105 		TIM2_SetCompare1(pulse);
+ 373  00a6 be13          	ldw	x,L75_pulse
+ 374  00a8 cd0000        	call	_TIM2_SetCompare1
+ 376  00ab               L311:
+ 377                     ; 107 }
+ 380  00ab 85            	popw	x
+ 381  00ac 81            	ret
+ 384                     	bsct
+ 385  0018               L121_minule_stisknuto:
+ 386  0018 ff            	dc.b	255
+ 387  0019               L321_last_time:
+ 388  0019 0000          	dc.w	0
+ 443                     .const:	section	.text
+ 444  0000               L22:
+ 445  0000 00e7          	dc.w	L521
+ 446  0002 00ed          	dc.w	L721
+ 447  0004 00f3          	dc.w	L131
+ 448  0006 00f9          	dc.w	L331
+ 449  0008 00ff          	dc.w	L531
+ 450  000a 0105          	dc.w	L731
+ 451  000c 010b          	dc.w	L141
+ 452  000e 0111          	dc.w	L341
+ 453  0010 0117          	dc.w	L541
+ 454  0012 011d          	dc.w	L741
+ 455  0014 0123          	dc.w	L151
+ 456  0016 0127          	dc.w	L351
+ 457                     ; 110 void process_keypad(void){
+ 458                     	switch	.text
+ 459  00ad               _process_keypad:
+ 461  00ad 88            	push	a
+ 462       00000001      OFST:	set	1
+ 465                     ; 116 	if(milis()-last_time > 20){ // ka�d�ch 20 ms ...
+ 467  00ae cd0000        	call	_milis
+ 469  00b1 72b00019      	subw	x,L321_last_time
+ 470  00b5 a30015        	cpw	x,#21
+ 471  00b8 2402          	jruge	L42
+ 472  00ba 2077          	jp	L302
+ 473  00bc               L42:
+ 474                     ; 117 		last_time = milis();
+ 476  00bc cd0000        	call	_milis
+ 478  00bf bf19          	ldw	L321_last_time,x
+ 479                     ; 118 		stisknuto = keypad_scan(); // ... skenujeme kl�vesnici
+ 481  00c1 cd0000        	call	_keypad_scan
+ 483  00c4 6b01          	ld	(OFST+0,sp),a
+ 485                     ; 120 		if(minule_stisknuto == 0xFF && stisknuto != 0xFF){ // uvoln�no a pak stisknuto
+ 487  00c6 b618          	ld	a,L121_minule_stisknuto
+ 488  00c8 a1ff          	cp	a,#255
+ 489  00ca 2702          	jreq	L62
+ 490  00cc 205b          	jp	L502
+ 491  00ce               L62:
+ 493  00ce 7b01          	ld	a,(OFST+0,sp)
+ 494  00d0 a1ff          	cp	a,#255
+ 495  00d2 2755          	jreq	L502
+ 496                     ; 121 			minule_stisknuto = stisknuto;
+ 498  00d4 7b01          	ld	a,(OFST+0,sp)
+ 499  00d6 b718          	ld	L121_minule_stisknuto,a
+ 500                     ; 123 			switch(stisknuto) {			// Switcher pro stisk					//  program bude ukl�dat jednotliv� ��slice
+ 502  00d8 7b01          	ld	a,(OFST+0,sp)
+ 504                     ; 159 					break;
+ 505  00da a10c          	cp	a,#12
+ 506  00dc 2407          	jruge	L02
+ 507  00de 5f            	clrw	x
+ 508  00df 97            	ld	xl,a
+ 509  00e0 58            	sllw	x
+ 510  00e1 de0000        	ldw	x,(L22,x)
+ 511  00e4 fc            	jp	(x)
+ 512  00e5               L02:
+ 513  00e5 2042          	jra	L502
+ 514  00e7               L521:
+ 515                     ; 124 				case 0 :
+ 515                     ; 125 					click(stisknuto);
+ 517  00e7 7b01          	ld	a,(OFST+0,sp)
+ 518  00e9 ad66          	call	_click
+ 520                     ; 126 					break;
+ 522  00eb 203c          	jra	L502
+ 523  00ed               L721:
+ 524                     ; 127 				case 1 :
+ 524                     ; 128 					click(stisknuto);
+ 526  00ed 7b01          	ld	a,(OFST+0,sp)
+ 527  00ef ad60          	call	_click
+ 529                     ; 129 					break;
+ 531  00f1 2036          	jra	L502
+ 532  00f3               L131:
+ 533                     ; 130 				case 2 :
+ 533                     ; 131 					click(stisknuto);
+ 535  00f3 7b01          	ld	a,(OFST+0,sp)
+ 536  00f5 ad5a          	call	_click
+ 538                     ; 132 					break;
+ 540  00f7 2030          	jra	L502
+ 541  00f9               L331:
+ 542                     ; 133 				case 3 :
+ 542                     ; 134 					click(stisknuto);
+ 544  00f9 7b01          	ld	a,(OFST+0,sp)
+ 545  00fb ad54          	call	_click
+ 547                     ; 135 					break;
+ 549  00fd 202a          	jra	L502
+ 550  00ff               L531:
+ 551                     ; 136 				case 4 :
+ 551                     ; 137 					click(stisknuto);
+ 553  00ff 7b01          	ld	a,(OFST+0,sp)
+ 554  0101 ad4e          	call	_click
+ 556                     ; 138 					break;
+ 558  0103 2024          	jra	L502
+ 559  0105               L731:
+ 560                     ; 139 				case 5 :
+ 560                     ; 140 					click(stisknuto);
+ 562  0105 7b01          	ld	a,(OFST+0,sp)
+ 563  0107 ad48          	call	_click
+ 565                     ; 141 					break;
+ 567  0109 201e          	jra	L502
+ 568  010b               L141:
+ 569                     ; 142 				case 6 :
+ 569                     ; 143 					click(stisknuto);
+ 571  010b 7b01          	ld	a,(OFST+0,sp)
+ 572  010d ad42          	call	_click
+ 574                     ; 144 					break;
+ 576  010f 2018          	jra	L502
+ 577  0111               L341:
+ 578                     ; 145 				case 7 :
+ 578                     ; 146 					click(stisknuto);
+ 580  0111 7b01          	ld	a,(OFST+0,sp)
+ 581  0113 ad3c          	call	_click
+ 583                     ; 147 					break;
+ 585  0115 2012          	jra	L502
+ 586  0117               L541:
+ 587                     ; 148 				case 8 :
+ 587                     ; 149 					click(stisknuto);
+ 589  0117 7b01          	ld	a,(OFST+0,sp)
+ 590  0119 ad36          	call	_click
+ 592                     ; 150 					break;
+ 594  011b 200c          	jra	L502
+ 595  011d               L741:
+ 596                     ; 151 				case 9 :
+ 596                     ; 152 					click(stisknuto);
+ 598  011d 7b01          	ld	a,(OFST+0,sp)
+ 599  011f ad30          	call	_click
+ 601                     ; 153 					break;
+ 603  0121 2006          	jra	L502
+ 604  0123               L151:
+ 605                     ; 154 				case 10 : //  *
+ 605                     ; 155 					clear();
+ 607  0123 ad10          	call	_clear
+ 609                     ; 156 					break;
+ 611  0125 2002          	jra	L502
+ 612  0127               L351:
+ 613                     ; 157 				case 11 : //  #
+ 613                     ; 158 					kontrola();
+ 615  0127 ad47          	call	_kontrola
+ 617                     ; 159 					break;
+ 619  0129               L112:
+ 620  0129               L502:
+ 621                     ; 163 		if(stisknuto == 0xFF){minule_stisknuto=0xFF;}
+ 623  0129 7b01          	ld	a,(OFST+0,sp)
+ 624  012b a1ff          	cp	a,#255
+ 625  012d 2604          	jrne	L302
+ 628  012f 35ff0018      	mov	L121_minule_stisknuto,#255
+ 629  0133               L302:
+ 630                     ; 165 }
+ 633  0133 84            	pop	a
+ 634  0134 81            	ret
+ 671                     ; 167 void clear(void){
+ 672                     	switch	.text
+ 673  0135               _clear:
+ 675  0135 88            	push	a
+ 676       00000001      OFST:	set	1
+ 679                     ; 169 	for(i = 0; i < (sizeof(entry)-1); i++){
+ 681  0136 0f01          	clr	(OFST+0,sp)
+ 683  0138               L332:
+ 684                     ; 170 		entry[i] = 10;
+ 686  0138 7b01          	ld	a,(OFST+0,sp)
+ 687  013a 5f            	clrw	x
+ 688  013b 97            	ld	xl,a
+ 689  013c a60a          	ld	a,#10
+ 690  013e e70b          	ld	(_entry,x),a
+ 691                     ; 169 	for(i = 0; i < (sizeof(entry)-1); i++){
+ 693  0140 0c01          	inc	(OFST+0,sp)
+ 697  0142 7b01          	ld	a,(OFST+0,sp)
+ 698  0144 a104          	cp	a,#4
+ 699  0146 25f0          	jrult	L332
+ 700                     ; 172 	pointer = 0;
+ 702  0148 3f10          	clr	_pointer
+ 703                     ; 173 	lcd_clear();
+ 705  014a a601          	ld	a,#1
+ 706  014c cd0000        	call	_lcd_command
+ 708                     ; 174 }
+ 711  014f 84            	pop	a
+ 712  0150 81            	ret
+ 750                     ; 176 void click(uint8_t number){
+ 751                     	switch	.text
+ 752  0151               _click:
+ 754  0151 88            	push	a
+ 755       00000000      OFST:	set	0
+ 758                     ; 177 	lcd_gotoxy(pointer,0);
+ 760  0152 b610          	ld	a,_pointer
+ 761  0154 5f            	clrw	x
+ 762  0155 95            	ld	xh,a
+ 763  0156 cd0000        	call	_lcd_gotoxy
+ 765                     ; 178 	if(pointer < sizeof(entry)-1){
+ 767  0159 b610          	ld	a,_pointer
+ 768  015b a104          	cp	a,#4
+ 769  015d 240f          	jruge	L752
+ 770                     ; 179 		lcd_putchar('*');
+ 772  015f a62a          	ld	a,#42
+ 773  0161 cd0000        	call	_lcd_data
+ 775                     ; 180 		entry[pointer] = number;
+ 777  0164 b610          	ld	a,_pointer
+ 778  0166 5f            	clrw	x
+ 779  0167 97            	ld	xl,a
+ 780  0168 7b01          	ld	a,(OFST+1,sp)
+ 781  016a e70b          	ld	(_entry,x),a
+ 782                     ; 181 		pointer ++;
+ 784  016c 3c10          	inc	_pointer
+ 785  016e               L752:
+ 786                     ; 183 }
+ 789  016e 84            	pop	a
+ 790  016f 81            	ret
+ 855                     ; 186 void kontrola(void){
+ 856                     	switch	.text
+ 857  0170               _kontrola:
+ 859  0170 5222          	subw	sp,#34
+ 860       00000022      OFST:	set	34
+ 863                     ; 187 	uint8_t pravda = 1;
+ 865  0172 a601          	ld	a,#1
+ 866  0174 6b21          	ld	(OFST-1,sp),a
+ 868                     ; 191 	lcd_gotoxy(0,1);
+ 870  0176 ae0001        	ldw	x,#1
+ 871  0179 cd0000        	call	_lcd_gotoxy
+ 873                     ; 193 	if(status / 10 == 1){ 							//  normální
+ 875  017c b600          	ld	a,_status
+ 876  017e 5f            	clrw	x
+ 877  017f 97            	ld	xl,a
+ 878  0180 a60a          	ld	a,#10
+ 879  0182 cd0000        	call	c_sdivx
+ 881  0185 a30001        	cpw	x,#1
+ 882  0188 261f          	jrne	L323
+ 883                     ; 194 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 885  018a 0f22          	clr	(OFST+0,sp)
+ 887  018c               L523:
+ 888                     ; 195 			if (entry[i] != heslo[i]){
+ 890  018c 7b22          	ld	a,(OFST+0,sp)
+ 891  018e 5f            	clrw	x
+ 892  018f 97            	ld	xl,a
+ 893  0190 7b22          	ld	a,(OFST+0,sp)
+ 894  0192 905f          	clrw	y
+ 895  0194 9097          	ld	yl,a
+ 896  0196 90e60b        	ld	a,(_entry,y)
+ 897  0199 e101          	cp	a,(_heslo,x)
+ 898  019b 2702          	jreq	L333
+ 899                     ; 196 				pravda = 0;
+ 901  019d 0f21          	clr	(OFST-1,sp)
+ 903  019f               L333:
+ 904                     ; 194 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 906  019f 0c22          	inc	(OFST+0,sp)
+ 910  01a1 7b22          	ld	a,(OFST+0,sp)
+ 911  01a3 a104          	cp	a,#4
+ 912  01a5 25e5          	jrult	L523
+ 914  01a7 201d          	jra	L533
+ 915  01a9               L323:
+ 916                     ; 200 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 918  01a9 0f22          	clr	(OFST+0,sp)
+ 920  01ab               L733:
+ 921                     ; 201 			if (entry[i] != security_pass[i]){
+ 923  01ab 7b22          	ld	a,(OFST+0,sp)
+ 924  01ad 5f            	clrw	x
+ 925  01ae 97            	ld	xl,a
+ 926  01af 7b22          	ld	a,(OFST+0,sp)
+ 927  01b1 905f          	clrw	y
+ 928  01b3 9097          	ld	yl,a
+ 929  01b5 90e60b        	ld	a,(_entry,y)
+ 930  01b8 e106          	cp	a,(_security_pass,x)
+ 931  01ba 2702          	jreq	L543
+ 932                     ; 202 				pravda = 0;
+ 934  01bc 0f21          	clr	(OFST-1,sp)
+ 936  01be               L543:
+ 937                     ; 200 		for(i = 0; i < (sizeof(entry)-1); i++){
+ 939  01be 0c22          	inc	(OFST+0,sp)
+ 943  01c0 7b22          	ld	a,(OFST+0,sp)
+ 944  01c2 a104          	cp	a,#4
+ 945  01c4 25e5          	jrult	L733
+ 946  01c6               L533:
+ 947                     ; 208 	if(pravda){
+ 949  01c6 0d21          	tnz	(OFST-1,sp)
+ 950  01c8 273a          	jreq	L743
+ 951                     ; 209 		sprintf(text,"allowed");
+ 953  01ca ae001f        	ldw	x,#L153
+ 954  01cd 89            	pushw	x
+ 955  01ce 96            	ldw	x,sp
+ 956  01cf 1c0003        	addw	x,#OFST-31
+ 957  01d2 cd0000        	call	_sprintf
+ 959  01d5 85            	popw	x
+ 960                     ; 217 		switch(status){
+ 962  01d6 b600          	ld	a,_status
+ 964                     ; 229 				break;
+ 965  01d8 a00b          	sub	a,#11
+ 966  01da 2712          	jreq	L362
+ 967  01dc 4a            	dec	a
+ 968  01dd 2709          	jreq	L162
+ 969  01df a009          	sub	a,#9
+ 970  01e1 2717          	jreq	L762
+ 971  01e3 4a            	dec	a
+ 972  01e4 270e          	jreq	L562
+ 973  01e6 2016          	jra	L553
+ 974  01e8               L162:
+ 975                     ; 218 			case UNLOCKED:
+ 975                     ; 219 				status = LOCKED;
+ 977  01e8 350b0000      	mov	_status,#11
+ 978                     ; 220 				break;
+ 980  01ec 2010          	jra	L553
+ 981  01ee               L362:
+ 982                     ; 221 			case LOCKED:	
+ 982                     ; 222 				status = UNLOCKED;
+ 984  01ee 350c0000      	mov	_status,#12
+ 985                     ; 223 				break;
+ 987  01f2 200a          	jra	L553
+ 988  01f4               L562:
+ 989                     ; 224 			case UNLOCKED_B:
+ 989                     ; 225 				status = UNLOCKED;
+ 991  01f4 350c0000      	mov	_status,#12
+ 992                     ; 226 				break;
+ 994  01f8 2004          	jra	L553
+ 995  01fa               L762:
+ 996                     ; 227 			case LOCKED_B:
+ 996                     ; 228 				status = LOCKED;
+ 998  01fa 350b0000      	mov	_status,#11
+ 999                     ; 229 				break;
+1001  01fe               L553:
+1002                     ; 232 		attemp = 1;
+1004  01fe 35010012      	mov	_attemp,#1
+1006  0202 200e          	jra	L753
+1007  0204               L743:
+1008                     ; 235 		sprintf(text,"denied");
+1010  0204 ae0018        	ldw	x,#L163
+1011  0207 89            	pushw	x
+1012  0208 96            	ldw	x,sp
+1013  0209 1c0003        	addw	x,#OFST-31
+1014  020c cd0000        	call	_sprintf
+1016  020f 85            	popw	x
+1017                     ; 236 		attemp ++;
+1019  0210 3c12          	inc	_attemp
+1020  0212               L753:
+1021                     ; 238 	lcd_puts(text);
+1023  0212 96            	ldw	x,sp
+1024  0213 1c0001        	addw	x,#OFST-33
+1025  0216 cd0000        	call	_lcd_puts
+1027                     ; 241 	if (attemp > max_attemps){		//  Změna na blokování
+1029  0219 b612          	ld	a,_attemp
+1030  021b b111          	cp	a,_max_attemps
+1031  021d 231b          	jrule	L363
+1032                     ; 242 		switch(status){
+1034  021f b600          	ld	a,_status
+1036                     ; 248 				break;
+1037  0221 a00b          	sub	a,#11
+1038  0223 2709          	jreq	L372
+1039  0225 4a            	dec	a
+1040  0226 260a          	jrne	L763
+1041                     ; 243 			case UNLOCKED:
+1041                     ; 244 				status = UNLOCKED_B;
+1043  0228 35160000      	mov	_status,#22
+1044                     ; 245 				break;
+1046  022c 2004          	jra	L763
+1047  022e               L372:
+1048                     ; 246 			case LOCKED:
+1048                     ; 247 				status = LOCKED_B;
+1050  022e 35150000      	mov	_status,#21
+1051                     ; 248 				break;
+1053  0232               L763:
+1054                     ; 250 		RGB_manager();
+1056  0232 cd003e        	call	_RGB_manager
+1058                     ; 251 		clear();
+1060  0235 cd0135        	call	_clear
+1062                     ; 252 		return;
+1064  0238 200c          	jra	L63
+1065  023a               L363:
+1066                     ; 255 	RGB_manager();
+1068  023a cd003e        	call	_RGB_manager
+1070                     ; 256 	delay_ms(1000);	// pauza pro přebliknkutí
+1072  023d ae03e8        	ldw	x,#1000
+1073  0240 cd0000        	call	_delay_ms
+1075                     ; 257 	clear();
+1077  0243 cd0135        	call	_clear
+1079                     ; 258 }
+1080  0246               L63:
+1083  0246 5b22          	addw	sp,#34
+1084  0248 81            	ret
+1112                     ; 260 void init_pwm(void){
+1113                     	switch	.text
+1114  0249               _init_pwm:
+1118                     ; 262 GPIO_Init(GPIOD, GPIO_PIN_4, GPIO_MODE_OUT_PP_LOW_FAST);
+1120  0249 4be0          	push	#224
+1121  024b 4b10          	push	#16
+1122  024d ae500f        	ldw	x,#20495
+1123  0250 cd0000        	call	_GPIO_Init
+1125  0253 85            	popw	x
+1126                     ; 264 TIM2_TimeBaseInit(TIM2_PRESCALER_16,1000-1);
+1128  0254 ae03e7        	ldw	x,#999
+1129  0257 89            	pushw	x
+1130  0258 a604          	ld	a,#4
+1131  025a cd0000        	call	_TIM2_TimeBaseInit
+1133  025d 85            	popw	x
+1134                     ; 266 TIM2_OC1Init( 	// inicializujeme kan�l 1 (TM2_CH1)
+1134                     ; 267 	TIM2_OCMODE_PWM1, 				// re�im PWM1
+1134                     ; 268 	TIM2_OUTPUTSTATE_ENABLE,	// V�stup povolen (TIMer ovl�d� pin)
+1134                     ; 269 	DEFAULT_PULSE,		// v�choz� hodnota ���ky pulzu je 1.5ms
+1134                     ; 270 	TIM2_OCPOLARITY_HIGH			// Z�t� rozsv�c�me hodnotou HIGH 
+1134                     ; 271 	);
+1136  025e 4b00          	push	#0
+1137  0260 ae000a        	ldw	x,#10
+1138  0263 89            	pushw	x
+1139  0264 ae6011        	ldw	x,#24593
+1140  0267 cd0000        	call	_TIM2_OC1Init
+1142  026a 5b03          	addw	sp,#3
+1143                     ; 274 TIM2_OC1PreloadConfig(ENABLE);
+1145  026c a601          	ld	a,#1
+1146  026e cd0000        	call	_TIM2_OC1PreloadConfig
+1148                     ; 276 TIM2_Cmd(ENABLE);
+1150  0271 a601          	ld	a,#1
+1151  0273 cd0000        	call	_TIM2_Cmd
+1153                     ; 277 }
+1156  0276 81            	ret
+1191                     ; 290 void assert_failed(u8* file, u32 line)
+1191                     ; 291 { 
+1192                     	switch	.text
+1193  0277               _assert_failed:
+1197  0277               L714:
+1198  0277 20fe          	jra	L714
+1279                     	xdef	_main
+1280                     	xdef	_attemp
+1281                     	xdef	_max_attemps
+1282                     	xdef	_pointer
+1283                     	xdef	_entry
+1284                     	xdef	_security_pass
+1285                     	xdef	_heslo
+1286                     	xdef	_status
+1287                     	xdef	_clear
+1288                     	xdef	_process_pwm_change
+1289                     	xdef	_init_pwm
+1290                     	xdef	_RGB_manager
+1291                     	xdef	_click
+1292                     	xdef	_kontrola
+1293                     	xdef	_process_keypad
+1294                     	xdef	_init
+1295                     	xref	_sprintf
+1296                     	xref	_lcd_puts
+1297                     	xref	_lcd_gotoxy
+1298                     	xref	_lcd_init
+1299                     	xref	_lcd_data
+1300                     	xref	_lcd_command
+1301                     	xref	_keypad_scan
+1302                     	xref	_keypad_init
+1303                     	xref	_init_milis
+1304                     	xref	_delay_ms
+1305                     	xref	_milis
+1306                     	xdef	_assert_failed
+1307                     	xref	_TIM2_SetCompare1
+1308                     	xref	_TIM2_OC1PreloadConfig
+1309                     	xref	_TIM2_Cmd
+1310                     	xref	_TIM2_OC1Init
+1311                     	xref	_TIM2_TimeBaseInit
+1312                     	xref	_GPIO_WriteLow
+1313                     	xref	_GPIO_WriteHigh
+1314                     	xref	_GPIO_Init
+1315                     	xref	_CLK_HSIPrescalerConfig
+1316                     	switch	.const
+1317  0018               L163:
+1318  0018 64656e696564  	dc.b	"denied",0
+1319  001f               L153:
+1320  001f 616c6c6f7765  	dc.b	"allowed",0
+1321                     	xref.b	c_x
+1341                     	xref	c_sdivx
+1342                     	end

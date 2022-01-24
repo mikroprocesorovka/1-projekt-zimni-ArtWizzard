@@ -33,6 +33,7 @@ void click(uint8_t);
 void RGB_manager(void);
 void init_pwm(void); 
 void process_pwm_change(void);
+void clear(void);
 
 //																													Prom�nn�
 uint8_t status = LOCKED;
@@ -51,8 +52,10 @@ void main(void){
 
   while (1){
 		process_keypad();			// Aktualizuje stisk kl�vesy
-		RGB_manager();				// Signalizace na RGB diodě
-		
+		//RGB_manager();				// Signalizace na RGB diodě
+		if (status == UNLOCKED_B || status == LOCKED_B){
+			process_pwm_change(); //LED na pinu D4
+		}
 	}
 }
 
@@ -71,6 +74,7 @@ void init(void){
 	keypad_init();					// Deklarace nastaven� pin� na kl�vesnici
 	lcd_init();							// Nastaven� LDC displeje
 	init_pwm(); 						// nastavit a spustit timer
+	RGB_manager();					// Zobraz� prvn� re�im na RGB
 	
 	//GPIO_Init(GPIOC,GPIO_PIN_5,GPIO_MODE_OUT_PP_LOW_SLOW);
 }
@@ -83,9 +87,6 @@ void RGB_manager(void){
 		G_HIGH;
 	}else if (status == LOCKED){
 		B_HIGH;
-	}else if (status == LOCKED_B || status == UNLOCKED_B){
-		//R_HIGH;
-		process_pwm_change(); //LED na pinu D4
 	}
 }
 
@@ -151,11 +152,7 @@ void process_keypad(void){
 					click(stisknuto);
 					break;
 				case 10 : //  *
-					for(i = 0; i < (sizeof(entry)-1); i++){
-						entry[i] = 10;
-					}
-					pointer = 0;
-					lcd_clear();
+					clear();
 					break;
 				case 11 : //  #
 					kontrola();
@@ -166,6 +163,16 @@ void process_keypad(void){
 		if(stisknuto == 0xFF){minule_stisknuto=0xFF;}
 	}
 }
+
+void clear(void){
+	uint8_t i;
+	for(i = 0; i < (sizeof(entry)-1); i++){
+		entry[i] = 10;
+	}
+	pointer = 0;
+	lcd_clear();
+}
+
 void click(uint8_t number){
 	lcd_gotoxy(pointer,0);
 	if(pointer < sizeof(entry)-1){
@@ -178,17 +185,18 @@ void click(uint8_t number){
 
 void kontrola(void){
 	uint8_t pravda = 1;
+	uint8_t temp;
 	uint8_t i;
 	char text[32];
 	lcd_gotoxy(0,1);
 	
-	if(status / 10 == 1){
+	if(status / 10 == 1){ 							//  normální
 		for(i = 0; i < (sizeof(entry)-1); i++){
 			if (entry[i] != heslo[i]){
 				pravda = 0;
 			}
 		}
-	} else {
+	} else { 										//  blokování
 		for(i = 0; i < (sizeof(entry)-1); i++){
 			if (entry[i] != security_pass[i]){
 				pravda = 0;
@@ -196,9 +204,31 @@ void kontrola(void){
 		}
 	}
 
+	//  Kontrola správnosti
 	if(pravda){
 		sprintf(text,"allowed");
-		status = UNLOCKED;
+/*
+		if (status == LOCKED){		// Změny normal a odblokování
+			status = UNLOCKED;
+		} else{
+			status = LOCKED;
+		}
+*/
+		switch(status){
+			case UNLOCKED:
+				status = LOCKED;
+				break;
+			case LOCKED:	
+				status = UNLOCKED;
+				break;
+			case UNLOCKED_B:
+				status = UNLOCKED;
+				break;
+			case LOCKED_B:
+				status = LOCKED;
+				break;
+		}
+		
 		attemp = 1;
 	}
 	else{
@@ -207,9 +237,24 @@ void kontrola(void){
 	}
 	lcd_puts(text);
 
-	if (attemp > max_attemps){
-		status = UNLOCKED_B;
+	//  Přesah špatných pokusů
+	if (attemp > max_attemps){		//  Změna na blokování
+		switch(status){
+			case UNLOCKED:
+				status = UNLOCKED_B;
+				break;
+			case LOCKED:
+				status = LOCKED_B;
+				break;
+		}
+		RGB_manager();
+		clear();
+		return;
 	}
+	
+	RGB_manager();
+	delay_ms(1000);	// pauza pro přebliknkutí
+	clear();
 }
 
 void init_pwm(void){
